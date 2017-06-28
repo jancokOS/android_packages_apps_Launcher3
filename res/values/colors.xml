@@ -52,4 +52,13 @@
     <color name="fallback_secondary_color">#FF37474F</color>
 
     <color name="infomation_count_circle_color">#F44336</color>
+
+    <!-- Settings Theme -->
+    <color name="colorAccent">@*android:color/accent_device_default_light</color>
+    <color name="primaryColor">@*android:color/primary_device_default_dark</color>
+    <color name="primaryColorDark">@*android:color/primary_dark_device_default_dark</color>
+
+    <!-- QSB Widget -->
+    <color name="qsb_connector">#fff2f2f2</color>
+    <color name="qsb_background">#ffffffff</color>
 </resources>
