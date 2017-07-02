@@ -61,4 +61,8 @@
     <!-- QSB Widget -->
     <color name="qsb_connector">#fff2f2f2</color>
     <color name="qsb_background">#ffffffff</color>
+
+	<!-- Icon Chooser -->
+    <color name="icon_settings_background">#ff313131</color>
+    <color name="icon_settings_text">#ffafafaf</color>
 </resources>

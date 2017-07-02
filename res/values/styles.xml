@@ -129,4 +129,17 @@
         <item name="indicatorSize">4dp</item>
         <item name="ringOutset">4dp</item>
     </style>
+
+    <!-- Settings Theme -->
+    <style name="SettingsTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <item name="android:colorPrimaryDark">@color/primaryColorDark</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+	</style>
+	
+    <style name="ChooseIconTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorBackground">@color/icon_settings_background</item>
+    </style>
 </resources>

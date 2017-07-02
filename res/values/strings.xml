@@ -262,4 +262,16 @@
     <!-- Pixel -->
     <string name="label_search">Search</string>
     <string name="week_day_format">%1$s, %2$s</string>
+
+    <!-- Icon pack -->
+    <string name="default_iconpack_title">Default</string>
+    <string name="icon_pack_title">Icon Pack</string>
+    <string name="edit_drop_target_label">Edit</string>
+    <string name="edit_app">Edit</string>
+    <string name="edit_reset">Reset</string>
+	<string name="edit_save">Save</string>
+    <string name="all_icons">All icons</string>
+    <string name="similar_icons">Similar icons</string>
+    <string name="icon_label">Label</string>
+    <string name="loading">Loading, please wait</string>
 </resources>
