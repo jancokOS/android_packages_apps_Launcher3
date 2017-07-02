@@ -16,9 +16,10 @@
 package com.android.launcher3.model;
 
 import android.content.Context;
+import android.os.UserHandle;
 
 import com.android.launcher3.ItemInfo;
-import com.android.launcher3.compat.UserHandleCompat;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.compat.UserManagerCompat;
 
 import java.util.Comparator;
@@ -29,11 +30,11 @@ import java.util.Comparator;
 public abstract class AbstractUserComparator<T extends ItemInfo> implements Comparator<T> {
 
     private final UserManagerCompat mUserManager;
-    private final UserHandleCompat mMyUser;
+    private final UserHandle mMyUser;
 
     public AbstractUserComparator(Context context) {
         mUserManager = UserManagerCompat.getInstance(context);
-        mMyUser = UserHandleCompat.myUserHandle();
+        mMyUser = Utilities.myUserHandle();
     }
 
     @Override

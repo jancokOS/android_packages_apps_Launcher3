@@ -57,7 +57,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.ShortcutInfo;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.accessibility.ShortcutMenuAccessibilityDelegate;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.dragndrop.DragOptions;
@@ -156,7 +156,7 @@ public class DeepShortcutsContainer extends LinearLayout implements View.OnLongC
         final Looper workerLooper = LauncherModel.getWorkerLooper();
         final Handler uiHandler = new Handler(Looper.getMainLooper());
         final ItemInfo originalInfo = (ItemInfo) originalIcon.getTag();
-        final UserHandleCompat user = originalInfo.user;
+        final UserHandle user = originalInfo.user;
         final ComponentName activity = originalInfo.getTargetComponent();
         new Handler(workerLooper).postAtFrontOfQueue(new Runnable() {
             @Override

@@ -16,12 +16,13 @@
 package com.android.launcher3.allapps;
 
 import android.content.Context;
+import android.os.UserHandle;
 import android.util.Log;
 
 import com.android.launcher3.AppInfo;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.compat.AlphabeticIndexCompat;
-import com.android.launcher3.compat.UserHandleCompat;
 import com.android.launcher3.config.ProviderConfig;
 import com.android.launcher3.model.AppNameComparator;
 import com.android.launcher3.util.ComponentKey;
@@ -418,13 +419,13 @@ public class AlphabeticalAppsList {
         if (DEBUG_PREDICTIONS) {
             if (mPredictedAppComponents.isEmpty() && !mApps.isEmpty()) {
                 mPredictedAppComponents.add(new ComponentKey(mApps.get(0).componentName,
-                        UserHandleCompat.myUserHandle()));
+                        Utilities.myUserHandle()));
                 mPredictedAppComponents.add(new ComponentKey(mApps.get(0).componentName,
-                        UserHandleCompat.myUserHandle()));
+                        Utilities.myUserHandle()));
                 mPredictedAppComponents.add(new ComponentKey(mApps.get(0).componentName,
-                        UserHandleCompat.myUserHandle()));
+                        Utilities.myUserHandle()));
                 mPredictedAppComponents.add(new ComponentKey(mApps.get(0).componentName,
-                        UserHandleCompat.myUserHandle()));
+                        Utilities.myUserHandle()));
             }
         }
 

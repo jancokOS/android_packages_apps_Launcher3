@@ -26,7 +26,7 @@ import android.os.Build;
 import com.android.launcher3.ItemInfo;
 import com.android.launcher3.compat.DeferredLauncherActivityInfo;
 import com.android.launcher3.compat.LauncherActivityInfoCompat;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.compat.UserManagerCompat;
 
 /**
@@ -86,8 +86,8 @@ public class ShortcutInfoCompat {
         return mShortcutInfo.getActivity();
     }
 
-    public UserHandleCompat getUserHandle() {
-        return UserHandleCompat.fromUser(mShortcutInfo.getUserHandle());
+    public UserHandle getUserHandle() {
+        return mShortcutInfo.getUserHandle();
     }
 
     public boolean hasKeyFieldsOnly() {

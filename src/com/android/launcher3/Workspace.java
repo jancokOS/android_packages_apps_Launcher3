@@ -65,7 +65,7 @@ import com.android.launcher3.accessibility.OverviewAccessibilityDelegate;
 import com.android.launcher3.accessibility.OverviewScreenAccessibilityDelegate;
 import com.android.launcher3.accessibility.WorkspaceAccessibilityHelper;
 import com.android.launcher3.compat.AppWidgetManagerCompat;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.config.ProviderConfig;
 import com.android.launcher3.dragndrop.DragController;
@@ -4188,7 +4188,7 @@ public class Workspace extends PagedView
         });
     }
 
-    public void removeAbandonedPromise(String packageName, UserHandleCompat user) {
+    public void removeAbandonedPromise(String packageName, UserHandle user) {
         HashSet<String> packages = new HashSet<>(1);
         packages.add(packageName);
         LauncherModel.deletePackageFromDatabase(mLauncher, packageName, user);

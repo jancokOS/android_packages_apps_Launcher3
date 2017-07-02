@@ -7,12 +7,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.widget.Toast;
-
-import com.android.launcher3.compat.UserHandleCompat;
 
 public class UninstallDropTarget extends ButtonDropTarget {
 
@@ -107,7 +106,7 @@ public class UninstallDropTarget extends ButtonDropTarget {
                     Uri.fromParts("package", cn.getPackageName(), cn.getClassName()))
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-            info.user.addToIntent(intent, Intent.EXTRA_USER);
+            intent.putExtra(Intent.EXTRA_USER, info.user);
             launcher.startActivity(intent);
             isUninstallable = true;
         }
@@ -127,7 +126,7 @@ public class UninstallDropTarget extends ButtonDropTarget {
      */
     protected static void sendUninstallResult(
             final Launcher launcher, boolean activityStarted,
-            final ComponentName cn, final UserHandleCompat user,
+            final ComponentName cn, final UserHandle user,
             final DropTargetResultCallback callback) {
         if (activityStarted)  {
             final Runnable checkIfUninstallWasSuccess = new Runnable() {

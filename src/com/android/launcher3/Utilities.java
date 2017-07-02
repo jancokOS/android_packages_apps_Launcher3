@@ -47,6 +47,8 @@ import android.graphics.drawable.PaintDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.Process;
+import android.os.UserHandle;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -62,7 +64,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.config.ProviderConfig;
 import com.android.launcher3.graphics.ShadowGenerator;
@@ -260,7 +262,7 @@ public final class Utilities {
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public static Bitmap createBadgedIconBitmap(
-            Drawable icon, UserHandleCompat user, Context context, int count) {
+            Drawable icon, UserHandle user, Context context, int count) {
         float scale = FeatureFlags.LAUNCHER3_DISABLE_ICON_NORMALIZATION ?
                 1 : IconNormalizer.getInstance().getScale(icon, null);
         Bitmap bitmap = createIconBitmap(icon, context, scale);
@@ -276,12 +278,12 @@ public final class Utilities {
     /**
      * Badges the provided icon with the user badge if required.
      */
-    public static Bitmap badgeIconForUser(Bitmap icon,  UserHandleCompat user, Context context) {
+    public static Bitmap badgeIconForUser(Bitmap icon,  UserHandle user, Context context) {
         if (Utilities.ATLEAST_LOLLIPOP && user != null
-                && !UserHandleCompat.myUserHandle().equals(user)) {
+                && !Utilities.myUserHandle().equals(user)) {
             BitmapDrawable drawable = new FixedSizeBitmapDrawable(icon);
             Drawable badged = context.getPackageManager().getUserBadgedIcon(
-                    drawable, user.getUser());
+                    drawable, user);
             if (badged instanceof BitmapDrawable) {
                 return ((BitmapDrawable) badged).getBitmap();
             } else {
@@ -993,5 +995,9 @@ public final class Utilities {
         explicitIntent.setComponent(component);
 
         return explicitIntent;
+    }
+
+	public static UserHandle myUserHandle() {
+        return android.os.Process.myUserHandle();
     }
 }

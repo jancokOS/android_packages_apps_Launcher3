@@ -30,6 +30,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.provider.Settings;
 
 import com.android.launcher3.Utilities;
@@ -60,7 +61,7 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
    }
 
     public List<LauncherActivityInfoCompat> getActivityList(String packageName,
-            UserHandleCompat user) {
+            UserHandle user) {
         final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         mainIntent.setPackage(packageName);
@@ -73,7 +74,7 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
         return list;
     }
 
-    public LauncherActivityInfoCompat resolveActivity(Intent intent, UserHandleCompat user) {
+    public LauncherActivityInfoCompat resolveActivity(Intent intent, UserHandle user) {
         ResolveInfo info = mPm.resolveActivity(intent, 0);
         if (info != null) {
             return new LauncherActivityInfoCompatV16(mContext, info);
@@ -81,7 +82,7 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
         return null;
     }
 
-    public void startActivityForProfile(ComponentName component, UserHandleCompat user,
+    public void startActivityForProfile(ComponentName component, UserHandle user,
             Rect sourceBounds, Bundle opts) {
         Intent launchIntent = new Intent(Intent.ACTION_MAIN);
         launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -91,7 +92,7 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
         mContext.startActivity(launchIntent, opts);
     }
 
-    public void showAppDetailsForProfile(ComponentName component, UserHandleCompat user) {
+    public void showAppDetailsForProfile(ComponentName component, UserHandle user) {
         String packageName = component.getPackageName();
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.fromParts("package", packageName, null));
@@ -116,11 +117,11 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
         }
     }
 
-    public boolean isPackageEnabledForProfile(String packageName, UserHandleCompat user) {
+    public boolean isPackageEnabledForProfile(String packageName, UserHandle user) {
         return PackageManagerHelper.isAppEnabled(mPm, packageName);
     }
 
-    public boolean isActivityEnabledForProfile(ComponentName component, UserHandleCompat user) {
+    public boolean isActivityEnabledForProfile(ComponentName component, UserHandle user) {
         try {
             ActivityInfo info = mPm.getActivityInfo(component, 0);
             return info != null && info.isEnabled();
@@ -129,7 +130,7 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
         }
     }
 
-    public boolean isPackageSuspendedForProfile(String packageName, UserHandleCompat user) {
+    public boolean isPackageSuspendedForProfile(String packageName, UserHandle user) {
         return false;
     }
 
@@ -156,7 +157,7 @@ public class LauncherAppsCompatV16 extends LauncherAppsCompat {
     @Thunk class PackageMonitor extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            final UserHandleCompat user = UserHandleCompat.myUserHandle();
+            final UserHandle user = Utilities.myUserHandle();
 
             if (Intent.ACTION_PACKAGE_CHANGED.equals(action)
                     || Intent.ACTION_PACKAGE_REMOVED.equals(action)

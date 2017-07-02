@@ -28,7 +28,7 @@ import android.text.TextUtils;
 
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.compat.LauncherActivityInfoCompat;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.compat.UserManagerCompat;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.shortcuts.ShortcutInfoCompat;
@@ -173,7 +173,7 @@ public class ShortcutInfo extends ItemInfo {
     }
 
     ShortcutInfo(Intent intent, CharSequence title, CharSequence contentDescription,
-            Bitmap icon, UserHandleCompat user) {
+            Bitmap icon, UserHandle user) {
         this();
         this.intent = intent;
         this.title = Utilities.trim(title);
@@ -322,7 +322,7 @@ public class ShortcutInfo extends ItemInfo {
 
         IconCache cache = launcherAppState.getIconCache();
         Bitmap unbadgedBitmap = unbadgedDrawable == null
-                ? cache.getDefaultIcon(UserHandleCompat.myUserHandle())
+                ? cache.getDefaultIcon(Utilities.myUserHandle())
                 : Utilities.createScaledBitmapWithoutShadow(unbadgedDrawable, context);
         setIcon(getBadgedIcon(unbadgedBitmap, shortcutInfo, cache, context));
     }

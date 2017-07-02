@@ -21,7 +21,7 @@ import android.content.ComponentName;
 import com.android.launcher3.ItemInfo;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.ShortcutInfo;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.shortcuts.ShortcutKey;
 
 import java.util.HashSet;
@@ -34,7 +34,7 @@ public abstract class ItemInfoMatcher {
     public abstract boolean matches(ItemInfo info, ComponentName cn);
 
     public static ItemInfoMatcher ofComponents(
-            final HashSet<ComponentName> components, final UserHandleCompat user) {
+            final HashSet<ComponentName> components, final UserHandle user) {
         return new ItemInfoMatcher() {
             @Override
             public boolean matches(ItemInfo info, ComponentName cn) {
@@ -44,7 +44,7 @@ public abstract class ItemInfoMatcher {
     }
 
     public static ItemInfoMatcher ofPackages(
-            final HashSet<String> packageNames, final UserHandleCompat user) {
+            final HashSet<String> packageNames, final UserHandle user) {
         return new ItemInfoMatcher() {
             @Override
             public boolean matches(ItemInfo info, ComponentName cn) {

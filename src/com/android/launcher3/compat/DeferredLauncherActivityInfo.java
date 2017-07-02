@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.graphics.drawable.Drawable;
+import android.os.UserHandle;
 import android.util.Log;
 
 /**
@@ -29,13 +30,13 @@ import android.util.Log;
 public class DeferredLauncherActivityInfo extends LauncherActivityInfoCompat {
 
     private final ComponentName mComponent;
-    private final UserHandleCompat mUser;
+    private final UserHandle mUser;
     private final Context mContext;
 
     private LauncherActivityInfoCompat mActualInfo;
 
     public DeferredLauncherActivityInfo(
-            ComponentName component, UserHandleCompat user, Context context) {
+            ComponentName component, UserHandle user, Context context) {
         mComponent = component;
         mUser = user;
         mContext = context;
@@ -47,7 +48,7 @@ public class DeferredLauncherActivityInfo extends LauncherActivityInfoCompat {
     }
 
     @Override
-    public UserHandleCompat getUser() {
+    public UserHandle getUser() {
         return mUser;
     }
 

@@ -26,6 +26,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.UserHandle;
+
+import com.android.launcher3.Utilities;
 
 
 public class LauncherActivityInfoCompatV16 extends LauncherActivityInfoCompat {
@@ -46,8 +49,8 @@ public class LauncherActivityInfoCompatV16 extends LauncherActivityInfoCompat {
         return mComponentName;
     }
 
-    public UserHandleCompat getUser() {
-        return UserHandleCompat.myUserHandle();
+    public UserHandle getUser() {
+        return Utilities.myUserHandle();
     }
 
     public CharSequence getLabel() {

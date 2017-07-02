@@ -52,7 +52,7 @@ import android.util.Log;
 import com.android.launcher3.AutoInstallsLayout.LayoutParserCallback;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.LauncherSettings.WorkspaceScreens;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.compat.UserManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.config.ProviderConfig;
@@ -660,13 +660,13 @@ public class LauncherProvider extends ContentProvider {
             Utilities.getPrefs(mContext).edit().putBoolean(EMPTY_DATABASE_CREATED, true).commit();
 
             // When a new DB is created, remove all previously stored managed profile information.
-            ManagedProfileHeuristic.processAllUsers(Collections.<UserHandleCompat>emptyList(),
+            ManagedProfileHeuristic.processAllUsers(Collections.<UserHandle>emptyList(),
                     mContext);
         }
 
         public long getDefaultUserSerial() {
             return UserManagerCompat.getInstance(mContext).getSerialNumberForUser(
-                    UserHandleCompat.myUserHandle());
+                    Utilities.myUserHandle());
         }
 
         private void addFavoritesTable(SQLiteDatabase db, boolean optional) {

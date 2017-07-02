@@ -53,7 +53,7 @@ public class UserManagerCompatVL extends UserManagerCompatV17 {
             if (users != null) {
                 for (UserHandle user : users) {
                     long serial = mUserManager.getSerialNumberForUser(user);
-                    UserHandleCompat userCompat = UserHandleCompat.fromUser(user);
+                    UserHandle userCompat = user;
                     mUsers.put(serial, userCompat);
                     mUserToSerialMap.put(userCompat, serial);
                 }
@@ -62,10 +62,10 @@ public class UserManagerCompatVL extends UserManagerCompatV17 {
     }
 
     @Override
-    public List<UserHandleCompat> getUserProfiles() {
+    public List<UserHandle> getUserProfiles() {
         synchronized (this) {
             if (mUsers != null) {
-                List<UserHandleCompat> users = new ArrayList<>();
+                List<UserHandle> users = new ArrayList<>();
                 users.addAll(mUserToSerialMap.keySet());
                 return users;
             }
@@ -75,24 +75,24 @@ public class UserManagerCompatVL extends UserManagerCompatV17 {
         if (users == null) {
             return Collections.emptyList();
         }
-        ArrayList<UserHandleCompat> compatUsers = new ArrayList<UserHandleCompat>(
+        ArrayList<UserHandle> compatUsers = new ArrayList<UserHandle>(
                 users.size());
         for (UserHandle user : users) {
-            compatUsers.add(UserHandleCompat.fromUser(user));
+            compatUsers.add(user);
         }
         return compatUsers;
     }
 
     @Override
-    public CharSequence getBadgedLabelForUser(CharSequence label, UserHandleCompat user) {
+    public CharSequence getBadgedLabelForUser(CharSequence label, UserHandle user) {
         if (user == null) {
             return label;
         }
-        return mPm.getUserBadgedLabel(label, user.getUser());
+        return mPm.getUserBadgedLabel(label, user);
     }
 
     @Override
-    public long getUserCreationTime(UserHandleCompat user) {
+    public long getUserCreationTime(UserHandle user) {
         SharedPreferences prefs = Utilities.getPrefs(mContext);
         String key = USER_CREATION_TIME_KEY + getSerialNumberForUser(user);
         if (!prefs.contains(key)) {

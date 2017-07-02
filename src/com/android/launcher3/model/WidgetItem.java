@@ -10,7 +10,7 @@ import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.compat.AppWidgetManagerCompat;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.util.ComponentKey;
 
 import java.text.Collator;
@@ -22,7 +22,7 @@ import java.text.Collator;
  */
 public class WidgetItem extends ComponentKey implements Comparable<WidgetItem> {
 
-    private static UserHandleCompat sMyUserHandle;
+    private static UserHandle sMyUserHandle;
     private static Collator sCollator;
 
     public final LauncherAppWidgetProviderInfo widgetInfo;
@@ -45,7 +45,7 @@ public class WidgetItem extends ComponentKey implements Comparable<WidgetItem> {
 
     public WidgetItem(ResolveInfo info, PackageManager pm) {
         super(new ComponentName(info.activityInfo.packageName, info.activityInfo.name),
-                UserHandleCompat.myUserHandle());
+                Utilities.myUserHandle());
         label = Utilities.trim(info.loadLabel(pm));
         widgetInfo = null;
         activityInfo = info.activityInfo;
@@ -56,7 +56,7 @@ public class WidgetItem extends ComponentKey implements Comparable<WidgetItem> {
     public int compareTo(WidgetItem another) {
         if (sMyUserHandle == null) {
             // Delay these object creation until required.
-            sMyUserHandle = UserHandleCompat.myUserHandle();
+            sMyUserHandle = Utilities.myUserHandle();
             sCollator = Collator.getInstance();
         }
 

@@ -30,7 +30,7 @@ import com.android.launcher3.ShortcutInfo;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.compat.LauncherActivityInfoCompat;
 import com.android.launcher3.shortcuts.ShortcutInfoCompat;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.compat.UserManagerCompat;
 
 import java.util.ArrayList;
@@ -55,8 +55,8 @@ public class ManagedProfileHeuristic {
      */
     private static final long AUTO_ADD_TO_FOLDER_DURATION = 8 * 60 * 60 * 1000;
 
-    public static ManagedProfileHeuristic get(Context context, UserHandleCompat user) {
-        if (Utilities.ATLEAST_LOLLIPOP && !UserHandleCompat.myUserHandle().equals(user)) {
+    public static ManagedProfileHeuristic get(Context context, UserHandle user) {
+        if (Utilities.ATLEAST_LOLLIPOP && !Utilities.myUserHandle().equals(user)) {
             return new ManagedProfileHeuristic(context, user);
         }
         return null;
@@ -64,9 +64,9 @@ public class ManagedProfileHeuristic {
 
     private final Context mContext;
     private final LauncherModel mModel;
-    private final UserHandleCompat mUser;
+    private final UserHandle mUser;
 
-    private ManagedProfileHeuristic(Context context, UserHandleCompat user) {
+    private ManagedProfileHeuristic(Context context, UserHandle user) {
         mContext = context;
         mUser = user;
         mModel = LauncherAppState.getInstance().getModel();
@@ -100,7 +100,7 @@ public class ManagedProfileHeuristic {
         }
 
         protected void onLauncherAppsAdded(
-                List<LauncherActivityInstallInfo> apps, UserHandleCompat user, boolean userAppsExisted) {
+                List<LauncherActivityInstallInfo> apps, UserHandle user, boolean userAppsExisted) {
             ArrayList<ShortcutInfo> workFolderApps = new ArrayList<>();
             ArrayList<ShortcutInfo> homescreenApps = new ArrayList<>();
 
@@ -126,14 +126,14 @@ public class ManagedProfileHeuristic {
         }
 
         @Override
-        protected void onLauncherPackageRemoved(String packageName, UserHandleCompat user) {
+        protected void onLauncherPackageRemoved(String packageName, UserHandle user) {
         }
 
         /**
          * Adds and binds shortcuts marked to be added to the work folder.
          */
         private void finalizeWorkFolder(
-                UserHandleCompat user, final ArrayList<ShortcutInfo> workFolderApps,
+                UserHandle user, final ArrayList<ShortcutInfo> workFolderApps,
                 ArrayList<ShortcutInfo> homescreenApps) {
             if (workFolderApps.isEmpty()) {
                 return;
@@ -184,7 +184,7 @@ public class ManagedProfileHeuristic {
 
         @Override
         public void onShortcutsChanged(String packageName, List<ShortcutInfoCompat> shortcuts,
-                UserHandleCompat user) {
+                UserHandle user) {
             // Do nothing
         }
     }
@@ -204,13 +204,13 @@ public class ManagedProfileHeuristic {
     /**
      * Verifies that entries corresponding to {@param users} exist and removes all invalid entries.
      */
-    public static void processAllUsers(List<UserHandleCompat> users, Context context) {
+    public static void processAllUsers(List<UserHandle> users, Context context) {
         if (!Utilities.ATLEAST_LOLLIPOP) {
             return;
         }
         UserManagerCompat userManager = UserManagerCompat.getInstance(context);
         HashSet<String> validKeys = new HashSet<String>();
-        for (UserHandleCompat user : users) {
+        for (UserHandle user : users) {
             addAllUserKeys(userManager.getSerialNumberForUser(user), validKeys);
         }
 
@@ -237,10 +237,10 @@ public class ManagedProfileHeuristic {
      */
     public static void markExistingUsersForNoFolderCreation(Context context) {
         UserManagerCompat userManager = UserManagerCompat.getInstance(context);
-        UserHandleCompat myUser = UserHandleCompat.myUserHandle();
+        UserHandle myUser = Utilities.myUserHandle();
 
         SharedPreferences prefs = null;
-        for (UserHandleCompat user : userManager.getUserProfiles()) {
+        for (UserHandle user : userManager.getUserProfiles()) {
             if (myUser.equals(user)) {
                 continue;
             }

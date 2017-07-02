@@ -21,7 +21,7 @@ import android.content.Context;
 
 import com.android.launcher3.compat.LauncherActivityInfoCompat;
 import com.android.launcher3.compat.LauncherAppsCompat;
-import com.android.launcher3.compat.UserHandleCompat;
+import android.os.UserHandle;
 import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.StringFilter;
 
@@ -95,7 +95,7 @@ class AllAppsList {
     /**
      * Add the icons for the supplied apk called packageName.
      */
-    public void addPackage(Context context, String packageName, UserHandleCompat user) {
+    public void addPackage(Context context, String packageName, UserHandle user) {
         final LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(context);
         final List<LauncherActivityInfoCompat> matches = launcherApps.getActivityList(packageName,
                 user);
@@ -108,7 +108,7 @@ class AllAppsList {
     /**
      * Remove the apps for the given apk identified by packageName.
      */
-    public void removePackage(String packageName, UserHandleCompat user) {
+    public void removePackage(String packageName, UserHandle user) {
         final List<AppInfo> data = this.data;
         for (int i = data.size() - 1; i >= 0; i--) {
             AppInfo info = data.get(i);
@@ -123,7 +123,7 @@ class AllAppsList {
     /**
      * Updates the apps for the given packageName and user based on {@param op}.
      */
-    public void updatePackageFlags(StringFilter pkgFilter, UserHandleCompat user, FlagOp op) {
+    public void updatePackageFlags(StringFilter pkgFilter, UserHandle user, FlagOp op) {
         final List<AppInfo> data = this.data;
         for (int i = data.size() - 1; i >= 0; i--) {
             AppInfo info = data.get(i);
@@ -135,7 +135,7 @@ class AllAppsList {
         }
     }
 
-    public void updateIconsAndLabels(HashSet<String> packages, UserHandleCompat user,
+    public void updateIconsAndLabels(HashSet<String> packages, UserHandle user,
             ArrayList<AppInfo> outUpdates) {
         for (AppInfo info : data) {
             if (info.user.equals(user) && packages.contains(info.componentName.getPackageName())) {
@@ -148,7 +148,7 @@ class AllAppsList {
     /**
      * Add and remove icons for this package which has been updated.
      */
-    public void updatePackage(Context context, String packageName, UserHandleCompat user) {
+    public void updatePackage(Context context, String packageName, UserHandle user) {
         final LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(context);
         final List<LauncherActivityInfoCompat> matches = launcherApps.getActivityList(packageName,
                 user);
@@ -214,7 +214,7 @@ class AllAppsList {
      * MAIN/LAUNCHER activities in the supplied package.
      */
     static boolean packageHasActivities(Context context, String packageName,
-            UserHandleCompat user) {
+            UserHandle user) {
         final LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(context);
         return launcherApps.getActivityList(packageName, user).size() > 0;
     }
@@ -223,7 +223,7 @@ class AllAppsList {
      * Returns whether <em>apps</em> contains <em>component</em>.
      */
     private static boolean findActivity(ArrayList<AppInfo> apps, ComponentName component,
-            UserHandleCompat user) {
+            UserHandle user) {
         final int N = apps.size();
         for (int i = 0; i < N; i++) {
             final AppInfo info = apps.get(i);
@@ -237,7 +237,7 @@ class AllAppsList {
     /**
      * Find an ApplicationInfo object for the given packageName and className.
      */
-    private AppInfo findApplicationInfoLocked(String packageName, UserHandleCompat user,
+    private AppInfo findApplicationInfoLocked(String packageName, UserHandle user,
             String className) {
         for (AppInfo info: data) {
             final ComponentName component = info.intent.getComponent();
@@ -255,7 +255,7 @@ class AllAppsList {
         if (component == null) { return null; }
 
         LauncherAppsCompat launcherApps = LauncherAppsCompat.getInstance(context);
-        UserHandleCompat myUserHandle = UserHandleCompat.myUserHandle();
+        UserHandle myUserHandle = Utilities.myUserHandle();
         List<LauncherActivityInfoCompat> matches =
                 launcherApps.getActivityList(component.getPackageName(), myUserHandle);
 
