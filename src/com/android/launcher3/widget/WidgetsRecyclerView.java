@@ -17,146 +17,94 @@
 package com.android.launcher3.widget;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.AttributeSet;
 import android.view.View;
+
 import com.android.launcher3.BaseRecyclerView;
-import com.android.launcher3.model.PackageItemInfo;
-import com.android.launcher3.model.WidgetsModel;
 
-/**
- * The widgets recycler view.
- */
 public class WidgetsRecyclerView extends BaseRecyclerView {
-
-    private static final String TAG = "WidgetsRecyclerView";
-    private WidgetsModel mWidgets;
+    private WidgetsListAdapter mAdapter;
 
     public WidgetsRecyclerView(Context context) {
         this(context, null);
     }
 
-    public WidgetsRecyclerView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
+    public WidgetsRecyclerView(Context context, AttributeSet attributeSet) {
+        this(context, attributeSet, 0);
     }
 
-    public WidgetsRecyclerView(Context context, AttributeSet attrs, int defStyleAttr) {
-        // API 21 and below only support 3 parameter ctor.
-        super(context, attrs, defStyleAttr);
+    public WidgetsRecyclerView(Context context, AttributeSet attributeSet, int i) {
+        super(context, attributeSet, i);
     }
 
-    public WidgetsRecyclerView(Context context, AttributeSet attrs, int defStyleAttr,
-            int defStyleRes) {
-        this(context, attrs, defStyleAttr);
+    public WidgetsRecyclerView(Context context, AttributeSet attributeSet, int i, int i2) {
+        this(context, attributeSet, i);
     }
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
         addOnItemTouchListener(this);
-        // create a layout manager with Launcher's context so that scroll position
-        // can be preserved during screen rotation.
         setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
-    public int getFastScrollerTrackColor(int defaultTrackColor) {
-        return Color.WHITE;
+    @Override
+    public int getFastScrollerTrackColor(int i) {
+        return -1;
     }
 
-    /**
-     * Sets the widget model in this view, used to determine the fast scroll position.
-     */
-    public void setWidgets(WidgetsModel widgets) {
-        mWidgets = widgets;
-    }
-    
-    /**
-     * We need to override the draw to ensure that we don't draw the overscroll effect beyond the
-     * background bounds.
-     */
     @Override
-    protected void dispatchDraw(Canvas canvas) {
-        canvas.clipRect(mBackgroundPadding.left, mBackgroundPadding.top,
-                getWidth() - mBackgroundPadding.right,
-                getHeight() - mBackgroundPadding.bottom);
-        super.dispatchDraw(canvas);
+    public void setAdapter(Adapter c0280q) {
+        super.setAdapter(c0280q);
+        this.mAdapter = (WidgetsListAdapter) c0280q;
     }
 
-    /**
-     * Maps the touch (from 0..1) to the adapter position that should be visible.
-     */
     @Override
-    public String scrollToPositionAtProgress(float touchFraction) {
-        // Skip early if widgets are not bound.
+    public String scrollToPositionAtProgress(float f) {
         if (isModelNotReady()) {
             return "";
         }
-
-        // Stop the scroller if it is scrolling
+        float f2;
         stopScroll();
-
-        int rowCount = mWidgets.getPackageSize();
-        float pos = rowCount * touchFraction;
-        int availableScrollHeight = getAvailableScrollHeight();
-        LinearLayoutManager layoutManager = ((LinearLayoutManager) getLayoutManager());
-        layoutManager.scrollToPositionWithOffset(0, (int) -(availableScrollHeight * touchFraction));
-
-        int posInt = (int) ((touchFraction == 1)? pos -1 : pos);
-        PackageItemInfo p = mWidgets.getPackageItemInfo(posInt);
-        return p.titleSectionName;
+        float itemCount = ((float) this.mAdapter.getItemCount()) * f;
+        ((LinearLayoutManager) getLayoutManager()).scrollToPositionWithOffset(0, (int) (-(((float) getAvailableScrollHeight()) * f)));
+        if (f == 1.0f) {
+            f2 = itemCount - 1.0f;
+        } else {
+            f2 = itemCount;
+        }
+        return this.mAdapter.getSectionName((int) f2);
     }
 
-    /**
-     * Updates the bounds for the scrollbar.
-     */
     @Override
-    public void onUpdateScrollbar(int dy) {
-        // Skip early if widgets are not bound.
-        if (isModelNotReady()) {
-            return;
+    public void onUpdateScrollbar(int i) {
+        if (!isModelNotReady()) {
+            int currentScrollY = getCurrentScrollY();
+            if (currentScrollY < 0) {
+                this.mScrollbar.setThumbOffsetY(-1);
+            } else {
+                synchronizeScrollBarThumbOffsetToViewScroll(currentScrollY, getAvailableScrollHeight());
+            }
         }
-
-        // Skip early if, there no child laid out in the container.
-        int scrollY = getCurrentScrollY();
-        if (scrollY < 0) {
-            mScrollbar.setThumbOffset(-1, -1);
-            return;
-        }
-
-        synchronizeScrollBarThumbOffsetToViewScroll(scrollY, getAvailableScrollHeight());
     }
 
     @Override
     public int getCurrentScrollY() {
-        // Skip early if widgets are not bound.
         if (isModelNotReady() || getChildCount() == 0) {
             return -1;
         }
-
-        View child = getChildAt(0);
-        int rowIndex = getChildPosition(child);
-        int y = (child.getMeasuredHeight() * rowIndex);
-        int offset = getLayoutManager().getDecoratedTop(child);
-
-        return getPaddingTop() + y - offset;
+        View childAt = getChildAt(0);
+        int childPosition = getChildPosition(childAt) * childAt.getMeasuredHeight();
+        return (childPosition + getPaddingTop()) - getLayoutManager().getDecoratedTop(childAt);
     }
 
-    /**
-     * Returns the available scroll height:
-     *   AvailableScrollHeight = Total height of the all items - last page height
-     */
     @Override
     protected int getAvailableScrollHeight() {
-        View child = getChildAt(0);
-        int height = child.getMeasuredHeight() * mWidgets.getPackageSize();
-        int totalHeight = getPaddingTop() + height + getPaddingBottom();
-        int availableScrollHeight = totalHeight - getVisibleHeight();
-        return availableScrollHeight;
+        return (((getChildAt(0).getMeasuredHeight() * this.mAdapter.getItemCount()) + getPaddingTop()) + getPaddingBottom()) - getHeight();
     }
 
     private boolean isModelNotReady() {
-        return mWidgets == null || mWidgets.getPackageSize() == 0;
+        return this.mAdapter.getItemCount() == 0;
     }
 }

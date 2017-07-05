@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
+import com.android.launcher3.badge.BadgeRenderer;
 import com.android.launcher3.config.FeatureFlags;
 
 import java.util.ArrayList;
@@ -123,6 +124,9 @@ public class DeviceProfile {
     // Drop Target
     public int dropTargetBarSizePx;
 
+    // Badge Renderer
+    public BadgeRenderer mBadgeRenderer;
+
     // Insets
     private Rect mInsets = new Rect();
 
@@ -203,6 +207,7 @@ public class DeviceProfile {
         // Calculate the remaining vars
         updateAvailableDimensions(dm, res);
         computeAllAppsButtonSize(context);
+        mBadgeRenderer = new BadgeRenderer(context, iconSizePx);
     }
 
     public void addLauncherLayoutChangedListener(LauncherLayoutChangeListener listener) {

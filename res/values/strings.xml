@@ -269,9 +269,17 @@
     <string name="edit_drop_target_label">Edit</string>
     <string name="edit_app">Edit</string>
     <string name="edit_reset">Reset</string>
-	<string name="edit_save">Save</string>
+    <string name="edit_save">Save</string>
     <string name="all_icons">All icons</string>
     <string name="similar_icons">Similar icons</string>
     <string name="icon_label">Label</string>
     <string name="loading">Loading, please wait</string>
+
+    <!-- Notification Badges -->
+    <string name="notification_badge_service">Notification Badge Service</string>
+  
+    <!-- Notifications/Shortcuts/Widgets -->
+    <string name="shortcuts_menu_with_notifications_description">%1$d shortcuts and %2$d notifications for %3$s</string>
+    <string name="notifications_header">Notifications</string>
+    <string name="widgets_bottom_sheet_title">%1$s widgets</string>
 </resources>

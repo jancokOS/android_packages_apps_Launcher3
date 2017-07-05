@@ -15,164 +15,156 @@
  */
 package com.android.launcher3.widget;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.Adapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
 
-import com.android.launcher3.BubbleTextView;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.R;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.WidgetPreviewLoader;
+import com.android.launcher3.compat.AlphabeticIndexCompat;
 import com.android.launcher3.model.PackageItemInfo;
 import com.android.launcher3.model.WidgetItem;
-import com.android.launcher3.model.WidgetsModel;
+import com.android.launcher3.util.LabelComparator;
+import com.android.launcher3.util.MultiHashMap;
+import com.android.launcher3.util.PackageUserKey;
 
-import java.util.List;
-
-/**
- * List view adapter for the widget tray.
- *
- * <p>Memory vs. Performance:
- * The less number of types of views are inserted into a {@link RecyclerView}, the more recycling
- * happens and less memory is consumed. {@link #getItemViewType} was not overridden as there is
- * only a single type of view.
- */
-public class WidgetsListAdapter extends Adapter<WidgetsRowViewHolder> {
-
-    private static final String TAG = "WidgetsListAdapter";
-    private static final boolean DEBUG = false;
-
-    private final WidgetPreviewLoader mWidgetPreviewLoader;
-    private final LayoutInflater mLayoutInflater;
-
-    private final View.OnClickListener mIconClickListener;
-    private final View.OnLongClickListener mIconLongClickListener;
-
-    private WidgetsModel mWidgetsModel;
-
+public class WidgetsListAdapter extends RecyclerView.Adapter<WidgetsRowViewHolder> {
+    private final ArrayList<WidgetListRowEntry> mEntries = new ArrayList<>();
+    private final OnClickListener mIconClickListener;
+    private final OnLongClickListener mIconLongClickListener;
     private final int mIndent;
+    private final AlphabeticIndexCompat mIndexer;
+    private final LayoutInflater mLayoutInflater;
+    private final WidgetPreviewLoader mWidgetPreviewLoader;
 
-    public WidgetsListAdapter(View.OnClickListener iconClickListener,
-            View.OnLongClickListener iconLongClickListener,
-            Context context) {
-        mLayoutInflater = LayoutInflater.from(context);
-        mWidgetPreviewLoader = LauncherAppState.getInstance().getWidgetCache();
+    public class WidgetListRowEntryComparator implements Comparator<WidgetListRowEntry> {
+        private final LabelComparator mComparator = new LabelComparator();
 
-        mIconClickListener = iconClickListener;
-        mIconLongClickListener = iconLongClickListener;
-        mIndent = context.getResources().getDimensionPixelSize(R.dimen.widget_section_indent);
+        @Override
+        public int compare(WidgetListRowEntry widgetListRowEntry, WidgetListRowEntry widgetListRowEntry2) {
+            return this.mComparator.compare(widgetListRowEntry.pkgItem.title.toString(), widgetListRowEntry2.pkgItem.title.toString());
+        }
     }
 
-    public void setWidgetsModel(WidgetsModel w) {
-        mWidgetsModel = w;
+    public WidgetsListAdapter(OnClickListener onClickListener, OnLongClickListener onLongClickListener, Context context) {
+        this.mLayoutInflater = LayoutInflater.from(context);
+        this.mWidgetPreviewLoader = LauncherAppState.getInstance().getWidgetCache();
+        this.mIndexer = new AlphabeticIndexCompat(context);
+        this.mIconClickListener = onClickListener;
+        this.mIconLongClickListener = onLongClickListener;
+        this.mIndent = context.getResources().getDimensionPixelSize(R.dimen.widget_section_indent);
+    }
+
+    public void setWidgets(MultiHashMap<PackageItemInfo, ArrayList<WidgetListRowEntry>> multiHashMap) {
+        this.mEntries.clear();
+        Comparator<WidgetItem> widgetItemComparator = new WidgetItemComparator();
+        for (Entry<PackageItemInfo, ArrayList<ArrayList<WidgetListRowEntry>>> entry : multiHashMap.entrySet()) {
+            WidgetListRowEntry widgetListRowEntry = new WidgetListRowEntry(entry.getKey(), entry.getValue());
+            widgetListRowEntry.titleSectionName = this.mIndexer.computeSectionName(widgetListRowEntry.pkgItem.title);
+            Collections.sort(widgetListRowEntry.widgets, widgetItemComparator);
+            this.mEntries.add(widgetListRowEntry);
+        }
+        Collections.sort(this.mEntries, new WidgetListRowEntryComparator());
     }
 
     @Override
     public int getItemCount() {
-        if (mWidgetsModel == null) {
-            return 0;
-        }
-        return mWidgetsModel.getPackageSize();
+        return this.mEntries.size();
     }
 
-    @Override
-    public void onBindViewHolder(WidgetsRowViewHolder holder, int pos) {
-        List<WidgetItem> infoList = mWidgetsModel.getSortedWidgets(pos);
+    public String getSectionName(int i) {
+        return ((WidgetListRowEntry) this.mEntries.get(i)).titleSectionName;
+    }
 
-        ViewGroup row = holder.cellContainer;
-        if (DEBUG) {
-            Log.d(TAG, String.format(
-                    "onBindViewHolder [pos=%d, widget#=%d, row.getChildCount=%d]",
-                    pos, infoList.size(), row.getChildCount()));
-        }
-
-        // Add more views.
-        // if there are too many, hide them.
-        int diff = infoList.size() - row.getChildCount();
-
-        if (diff > 0) {
-            for (int i = 0; i < diff; i++) {
-                WidgetCell widget = (WidgetCell) mLayoutInflater.inflate(
-                        R.layout.widget_cell, row, false);
-
-                // set up touch.
-                widget.setOnClickListener(mIconClickListener);
-                widget.setOnLongClickListener(mIconLongClickListener);
-                LayoutParams lp = widget.getLayoutParams();
-                lp.height = widget.cellSize;
-                lp.width = widget.cellSize;
-                widget.setLayoutParams(lp);
-
-                row.addView(widget);
-            }
-        } else if (diff < 0) {
-            for (int i=infoList.size() ; i < row.getChildCount(); i++) {
-                row.getChildAt(i).setVisibility(View.GONE);
+    public List copyWidgetsForPackageUser(PackageUserKey packageUserKey) {
+        for (WidgetListRowEntry widgetListRowEntry : this.mEntries) {
+            if (widgetListRowEntry.pkgItem.packageName.equals(packageUserKey.mPackageName)) {
+                ArrayList arrayList = new ArrayList(widgetListRowEntry.widgets);
+                Iterator it = arrayList.iterator();
+                while (it.hasNext()) {
+                    if (!((WidgetItem) it.next()).user.equals(packageUserKey.mUser)) {
+                        it.remove();
+                    }
+                }
+                if (!arrayList.isEmpty()) {
+                    return arrayList;
+                }
+                return null;
             }
         }
-
-        // Bind the views in the application info section.
-        holder.title.applyFromPackageItemInfo(mWidgetsModel.getPackageItemInfo(pos));
-
-        // Bind the view in the widget horizontal tray region.
-        for (int i=0; i < infoList.size(); i++) {
-            WidgetCell widget = (WidgetCell) row.getChildAt(i);
-            widget.applyFromCellItem(infoList.get(i), mWidgetPreviewLoader);
-            widget.ensurePreview();
-            widget.setVisibility(View.VISIBLE);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    @Override
-    public WidgetsRowViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (DEBUG) {
-            Log.v(TAG, "\nonCreateViewHolder");
-        }
-
-        ViewGroup container = (ViewGroup) mLayoutInflater.inflate(
-                R.layout.widgets_list_row_view, parent, false);
-        LinearLayout cellList = (LinearLayout) container.findViewById(R.id.widgets_cell_list);
-
-        // if the end padding is 0, then container view (horizontal scroll view) doesn't respect
-        // the end of the linear layout width + the start padding and doesn't allow scrolling.
-        if (Utilities.ATLEAST_JB_MR1) {
-            cellList.setPaddingRelative(mIndent, 0, 1, 0);
-        } else {
-            cellList.setPadding(mIndent, 0, 1, 0);
-        }
-
-        return new WidgetsRowViewHolder(container);
+        return null;
     }
 
     @Override
-    public void onViewRecycled(WidgetsRowViewHolder holder) {
-        int total = holder.cellContainer.getChildCount();
-        for (int i = 0; i < total; i++) {
-            WidgetCell widget = (WidgetCell) holder.cellContainer.getChildAt(i);
-            widget.clear();
+    public void onBindViewHolder(WidgetsRowViewHolder widgetsRowViewHolder, int i) {
+        WidgetListRowEntry widgetListRowEntry = (WidgetListRowEntry) this.mEntries.get(i);
+        List list = widgetListRowEntry.widgets;
+        ViewGroup viewGroup = widgetsRowViewHolder.cellContainer;
+        int max = Math.max(0, list.size() - 1) + list.size();
+        int childCount = viewGroup.getChildCount();
+        if (max > childCount) {
+            while (childCount < max) {
+                if ((childCount & 1) == 1) {
+                    this.mLayoutInflater.inflate(R.layout.widget_list_divider, viewGroup);
+                } else {
+                    WidgetCell widgetCell = (WidgetCell) this.mLayoutInflater.inflate(R.layout.widget_cell, viewGroup, false);
+                    widgetCell.setOnClickListener(this.mIconClickListener);
+                    widgetCell.setOnLongClickListener(this.mIconLongClickListener);
+                    viewGroup.addView(widgetCell);
+                }
+                childCount++;
+            }
+        } else if (max < childCount) {
+            for (int i2 = max; i2 < childCount; i2++) {
+                viewGroup.getChildAt(i2).setVisibility(View.GONE);
+            }
+        }
+        widgetsRowViewHolder.title.applyFromPackageItemInfo(widgetListRowEntry.pkgItem);
+        for (max = 0; max < list.size(); max++) {
+            WidgetCell widgetCell2 = (WidgetCell) viewGroup.getChildAt(max * 2);
+            widgetCell2.applyFromCellItem((WidgetItem) list.get(max), this.mWidgetPreviewLoader);
+            widgetCell2.ensurePreview();
+            widgetCell2.setVisibility(View.VISIBLE);
+            if (max > 0) {
+                viewGroup.getChildAt((max * 2) - 1).setVisibility(View.VISIBLE);
+            }
         }
     }
 
-    public boolean onFailedToRecycleView(WidgetsRowViewHolder holder) {
-        // If child views are animating, then the RecyclerView may choose not to recycle the view,
-        // causing extraneous onCreateViewHolder() calls.  It is safe in this case to continue
-        // recycling this view, and take care in onViewRecycled() to cancel any existing
-        // animations.
+    @Override
+    public WidgetsRowViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        ViewGroup viewGroup2 = (ViewGroup) this.mLayoutInflater.inflate(R.layout.widgets_list_row_view, viewGroup, false);
+        viewGroup2.findViewById(R.id.widgets_cell_list).setPaddingRelative(this.mIndent, 0, 1, 0);
+        return new WidgetsRowViewHolder(viewGroup2);
+    }
+
+    @Override
+    public void onViewRecycled(WidgetsRowViewHolder widgetsRowViewHolder) {
+        int childCount = widgetsRowViewHolder.cellContainer.getChildCount();
+        for (int i = 0; i < childCount; i += 2) {
+            ((WidgetCell) widgetsRowViewHolder.cellContainer.getChildAt(i)).clear();
+        }
+    }
+
+    @Override
+    public boolean onFailedToRecycleView(WidgetsRowViewHolder widgetsRowViewHolder) {
         return true;
     }
 
     @Override
-    public long getItemId(int pos) {
-        return pos;
+    public long getItemId(int i) {
+        return (long) i;
     }
 }

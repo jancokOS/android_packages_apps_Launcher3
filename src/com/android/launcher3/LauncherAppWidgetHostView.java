@@ -48,6 +48,7 @@ public class LauncherAppWidgetHostView extends AppWidgetHostView implements Touc
     private int mPreviousOrientation;
 
     private float mSlop;
+    private float mScaleToFit = 1f;
 
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mChildrenFocused;
@@ -89,6 +90,7 @@ public class LauncherAppWidgetHostView extends AppWidgetHostView implements Touc
        return false;
     }
 
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         // Just in case the previous long press hasn't been cleared, we make sure to start fresh
         // on touch down.
@@ -132,6 +134,7 @@ public class LauncherAppWidgetHostView extends AppWidgetHostView implements Touc
         return false;
     }
 
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         // If the widget does not handle touch, then cancel
         // long press when we release the touch
@@ -295,5 +298,15 @@ public class LauncherAppWidgetHostView extends AppWidgetHostView implements Touc
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
         info.setClassName(getClass().getName());
+    }
+
+    public void setScaleToFit(float f) {
+        this.mScaleToFit = f;
+        setScaleX(f);
+        setScaleY(f);
+    }
+
+    public float getScaleToFit() {
+        return this.mScaleToFit;
     }
 }

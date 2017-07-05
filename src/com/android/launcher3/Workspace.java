@@ -60,10 +60,11 @@ import android.widget.TextView;
 import com.android.launcher3.Launcher.CustomContentCallbacks;
 import com.android.launcher3.Launcher.LauncherOverlay;
 import com.android.launcher3.UninstallDropTarget.DropTargetSource;
-import com.android.launcher3.accessibility.AccessibileDragListenerAdapter;
+import com.android.launcher3.accessibility.AccessibleDragListenerAdapter;
 import com.android.launcher3.accessibility.OverviewAccessibilityDelegate;
 import com.android.launcher3.accessibility.OverviewScreenAccessibilityDelegate;
 import com.android.launcher3.accessibility.WorkspaceAccessibilityHelper;
+import com.android.launcher3.badge.FolderBadgeInfo;
 import com.android.launcher3.compat.AppWidgetManagerCompat;
 import android.os.UserHandle;
 import com.android.launcher3.config.FeatureFlags;
@@ -77,11 +78,14 @@ import com.android.launcher3.dragndrop.SpringLoadedDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.graphics.DragPreviewProvider;
+import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.shortcuts.ShortcutDragPreviewProvider;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Target;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LongArrayMap;
 import com.android.launcher3.util.MultiStateAlphaController;
+import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.VerticalFlingDetector;
 import com.android.launcher3.util.WallpaperOffsetInterpolator;
@@ -91,6 +95,7 @@ import com.android.launcher3.widget.PendingAddWidgetInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The workspace is a wide area with a wallpaper and a finite number of pages.
@@ -2292,34 +2297,22 @@ public class Workspace extends PagedView
     }
 
     public void startDrag(CellLayout.CellInfo cellInfo, DragOptions options) {
-        View child = cellInfo.cell;
-
-        // Make sure the drag was started by a long press as opposed to a long click.
-        if (!child.isInTouchMode()) {
-            return;
+        View view = cellInfo.cell;
+        if (view.isInTouchMode()) {
+            this.mDragInfo = cellInfo;
+            view.setVisibility(INVISIBLE);
+            if (options.isAccessibleDrag) {
+                this.mDragController.addDragListener(new AccessibleDragListenerAdapter(this, 2) {
+                    @Override
+                    protected void enableAccessibleDrag(boolean z) {
+                        super.enableAccessibleDrag(z);
+                        setEnableForLayout(Workspace.this.mLauncher.getHotseat().getLayout(), z);
+                        Workspace.this.setOnClickListener(z ? null : Workspace.this.mLauncher);
+                    }
+                });
+            }
+             beginDragShared(view, this, options);
         }
-
-        mDragInfo = cellInfo;
-        child.setVisibility(INVISIBLE);
-        CellLayout layout = (CellLayout) child.getParent().getParent();
-        layout.prepareChildForDrag(child);
-
-        if (options.isAccessibleDrag) {
-            mDragController.addDragListener(new AccessibileDragListenerAdapter(
-                    this, CellLayout.WORKSPACE_ACCESSIBILITY_DRAG) {
-                @Override
-                protected void enableAccessibleDrag(boolean enable) {
-                    super.enableAccessibleDrag(enable);
-                    setEnableForLayout(mLauncher.getHotseat().getLayout(),enable);
-
-                    // We need to allow our individual children to become click handlers in this
-                    // case, so temporarily unset the click handlers.
-                    setOnClickListener(enable ? null : mLauncher);
-                }
-            });
-        }
-
-        beginDragShared(child, this, options);
     }
 
     public void beginDragShared(View child, DragSource source, DragOptions options) {
@@ -2337,53 +2330,46 @@ public class Workspace extends PagedView
 
     public DragView beginDragShared(View child, DragSource source, ItemInfo dragObject,
             DragPreviewProvider previewProvider, DragOptions dragOptions) {
+        Point point;
+        Rect rect = null;
         child.clearFocus();
         child.setPressed(false);
-        mOutlineProvider = previewProvider;
-
-        // The drag bitmap follows the touch point around on the screen
-        final Bitmap b = previewProvider.createDragBitmap(mCanvas);
-        int halfPadding = previewProvider.previewPadding / 2;
-
-        float scale = previewProvider.getScaleAndPosition(b, mTempXY);
-        int dragLayerX = mTempXY[0];
-        int dragLayerY = mTempXY[1];
-
-        DeviceProfile grid = mLauncher.getDeviceProfile();
-        Point dragVisualizeOffset = null;
-        Rect dragRect = null;
+        this.mOutlineProvider = previewProvider;
+        Bitmap createDragBitmap = previewProvider.createDragBitmap(this.mCanvas);
+        int i = previewProvider.previewPadding / 2;
+        float scaleAndPosition = previewProvider.getScaleAndPosition(createDragBitmap, this.mTempXY);
+        int i2 = this.mTempXY[0];
+        int i3 = this.mTempXY[1];
+        DeviceProfile deviceProfile = this.mLauncher.getDeviceProfile();
         if (child instanceof BubbleTextView) {
-            int iconSize = grid.iconSizePx;
-            int top = child.getPaddingTop();
-            int left = (b.getWidth() - iconSize) / 2;
-            int right = left + iconSize;
-            int bottom = top + iconSize;
-            dragLayerY += top;
-            // Note: The drag region is used to calculate drag layer offsets, but the
-            // dragVisualizeOffset in addition to the dragRect (the size) to position the outline.
-            dragVisualizeOffset = new Point(- halfPadding, halfPadding);
-            dragRect = new Rect(left, top, right, bottom);
+            rect = new Rect();
+            ((BubbleTextView) child).getIconBounds(rect);
+            i3 += rect.top;
+            point = new Point(-i, i);
         } else if (child instanceof FolderIcon) {
-            int previewSize = grid.folderIconSizePx;
-            dragVisualizeOffset = new Point(- halfPadding, halfPadding - child.getPaddingTop());
-            dragRect = new Rect(0, child.getPaddingTop(), child.getWidth(), previewSize);
+            int i4 = deviceProfile.folderIconSizePx;
+            point = new Point(-i, i - child.getPaddingTop());
+            rect = new Rect(0, child.getPaddingTop(), child.getWidth(), i4);
+        } else {
+            point = previewProvider instanceof ShortcutDragPreviewProvider ? new Point(-i, i) : null;
         }
-
-        // Clear the pressed state if necessary
         if (child instanceof BubbleTextView) {
-            BubbleTextView icon = (BubbleTextView) child;
-            icon.clearPressedBackground();
+            ((BubbleTextView) child).clearPressedBackground();
         }
 
         if (child.getParent() instanceof ShortcutAndWidgetContainer) {
             mDragSourceInternal = (ShortcutAndWidgetContainer) child.getParent();
         }
-
-        DragView dv = mDragController.startDrag(b, dragLayerX, dragLayerY, source,
-                dragObject, dragVisualizeOffset, dragRect, scale, dragOptions);
-        dv.setIntrinsicIconScaleFactor(source.getIntrinsicIconScaleFactor());
-        b.recycle();
-        return dv;
+        if ((child instanceof BubbleTextView) && (!dragOptions.isAccessibleDrag)) {
+            PopupContainerWithArrow showForIcon = PopupContainerWithArrow.showForIcon((BubbleTextView) child);
+            if (showForIcon != null) {
+                dragOptions.deferDragCondition2 = showForIcon.createDeferDragCondition();
+            }
+        }
+        DragView startDrag = this.mDragController.startDrag(createDragBitmap, i2, i3, source, dragObject, point, rect, scaleAndPosition, dragOptions);
+        startDrag.setIntrinsicIconScaleFactor(source.getIntrinsicIconScaleFactor());
+        createDragBitmap.recycle();
+        return startDrag;
     }
 
     public boolean transitionStateShouldAllowDrop() {
@@ -3782,11 +3768,6 @@ public class Workspace extends PagedView
     }
 
     @Override
-    public boolean supportsFlingToDelete() {
-        return true;
-    }
-
-    @Override
     public boolean supportsAppInfoDropTarget() {
         return !FeatureFlags.LAUNCHER3_LEGACY_WORKSPACE_DND;
     }
@@ -3798,11 +3779,6 @@ public class Workspace extends PagedView
 
     @Override
     public void onFlingToDelete(DragObject d, PointF vec) {
-        // Do nothing
-    }
-
-    @Override
-    public void onFlingToDeleteCompleted() {
         // Do nothing
     }
 
@@ -4167,8 +4143,7 @@ public class Workspace extends PagedView
                     Drawable oldIcon = getTextViewIcon(shortcut);
                     boolean oldPromiseState = (oldIcon instanceof PreloadIconDrawable)
                             && ((PreloadIconDrawable) oldIcon).hasNotCompleted();
-                    shortcut.applyFromShortcutInfo(si, mIconCache,
-                            si.isPromise() != oldPromiseState);
+                    shortcut.applyFromShortcutInfo(si, si.isPromise() != oldPromiseState);
                 }
                 // process all the shortcuts
                 return false;
@@ -4183,6 +4158,34 @@ public class Workspace extends PagedView
                     ((FolderInfo) info).itemsChanged(false);
                 }
                 // process all the shortcuts
+                return false;
+            }
+        });
+    }
+
+    public void updateIconBadges(final Set set) {
+        final PackageUserKey packageUserKey = new PackageUserKey(null, null);
+        final HashSet hashSet = new HashSet();
+        mapOverItems(true, new ItemOperator() {
+            @Override
+            public boolean evaluate(ItemInfo itemInfo, View view) {
+                if ((itemInfo instanceof ShortcutInfo) && (view instanceof BubbleTextView) && packageUserKey.updateFromItemInfo(itemInfo) && set.contains(packageUserKey)) {
+                    ((BubbleTextView) view).applyBadgeState(itemInfo, true);
+                    hashSet.add(Long.valueOf(itemInfo.container));
+                }
+                return false;
+            }
+        });
+        mapOverItems(false, new ItemOperator() {
+            @Override
+            public boolean evaluate(ItemInfo itemInfo, View view) {
+                if ((itemInfo instanceof FolderInfo) && hashSet.contains(Long.valueOf(itemInfo.id)) && (view instanceof FolderIcon)) {
+                    FolderBadgeInfo folderBadgeInfo = new FolderBadgeInfo();
+                    for (ShortcutInfo badgeInfoForItem : ((FolderInfo) itemInfo).contents) {
+                        folderBadgeInfo.addBadgeInfo(Workspace.this.mLauncher.getPopupDataProvider().getBadgeInfoForItem(badgeInfoForItem));
+                    }
+                    ((FolderIcon) view).setBadgeInfo(folderBadgeInfo);
+                }
                 return false;
             }
         });

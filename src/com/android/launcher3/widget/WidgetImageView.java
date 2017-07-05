@@ -73,15 +73,18 @@ public class WidgetImageView extends View {
     }
 
     private void updateDstRectF() {
-        if (mBitmap.getWidth() > getWidth()) {
-            float scale = ((float) getWidth()) / mBitmap.getWidth();
-            mDstRectF.set(0, 0, getWidth(), scale * mBitmap.getHeight());
+        float width2 = (float) mBitmap.getWidth();
+        float f = width2 > (float) getWidth() ? (float) getWidth() / width2 : 1.0f;
+        width2 *= f;
+        f *= (float) mBitmap.getHeight();
+        mDstRectF.left = ((float) getWidth() - width2) / 2.0f;
+        mDstRectF.right = ((float) getWidth() + width2) / 2.0f;
+        if (f > (float) getHeight()) {
+            mDstRectF.top = 0.0f;
+            mDstRectF.bottom = f;
         } else {
-            mDstRectF.set(
-                    (getWidth() - mBitmap.getWidth()) * 0.5f,
-                    0,
-                    (getWidth() + mBitmap.getWidth()) * 0.5f,
-                    mBitmap.getHeight());
+            mDstRectF.top = ((float) getHeight() - f) / 2.0f;
+            mDstRectF.bottom = (f + (float) getHeight()) / 2.0f;
         }
     }
 

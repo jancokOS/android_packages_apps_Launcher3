@@ -54,14 +54,15 @@ import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.graphics.TintedDrawableSpan;
 import com.android.launcher3.keyboard.FocusedItemDecorator;
-import com.android.launcher3.shortcuts.DeepShortcutsContainer;
 import com.android.launcher3.userevent.nano.LauncherLogProto.Target;
 import com.android.launcher3.util.ComponentKey;
+import com.android.launcher3.util.PackageUserKey;
 
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -550,20 +551,6 @@ public class AllAppsContainerView extends BaseContainerView implements DragSourc
 
         // Start the drag
         DragOptions dragOptions = new DragOptions();
-        if (v instanceof BubbleTextView) {
-            final BubbleTextView icon = (BubbleTextView) v;
-            if (icon.hasDeepShortcuts()) {
-                DeepShortcutsContainer dsc = DeepShortcutsContainer.showForIcon(icon);
-                if (dsc != null) {
-                    dragOptions.deferDragCondition = dsc.createDeferDragCondition(new Runnable() {
-                        @Override
-                        public void run() {
-                            icon.setVisibility(VISIBLE);
-                        }
-                    });
-                }
-            }
-        }
         mLauncher.getWorkspace().beginDragShared(v, this, dragOptions);
         if (FeatureFlags.LAUNCHER3_LEGACY_WORKSPACE_DND) {
             // Enter spring loaded mode (the new workspace does this in
@@ -572,11 +559,6 @@ public class AllAppsContainerView extends BaseContainerView implements DragSourc
         }
 
         return false;
-    }
-
-    @Override
-    public boolean supportsFlingToDelete() {
-        return true;
     }
 
     @Override
@@ -593,14 +575,6 @@ public class AllAppsContainerView extends BaseContainerView implements DragSourc
     public float getIntrinsicIconScaleFactor() {
         DeviceProfile grid = mLauncher.getDeviceProfile();
         return (float) grid.allAppsIconSizePx / grid.iconSizePx;
-    }
-
-    @Override
-    public void onFlingToDeleteCompleted() {
-        // We just dismiss the drag when we fling, so cleanup here
-        mLauncher.exitSpringLoadedDragModeDelayed(true,
-                Launcher.EXIT_SPRINGLOADED_MODE_SHORT_TIMEOUT, null);
-        mLauncher.unlockScreenOrientation(false);
     }
 
     @Override
@@ -738,5 +712,19 @@ public class AllAppsContainerView extends BaseContainerView implements DragSourc
 
     public boolean shouldRestoreImeState() {
         return !TextUtils.isEmpty(mSearchInput.getText());
+    }
+
+    public void updateIconBadges(Set set) {
+        PackageUserKey packageUserKey = new PackageUserKey(null, null);
+        int childCount = this.mAppsRecyclerView.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View childAt = this.mAppsRecyclerView.getChildAt(i);
+            if ((childAt instanceof BubbleTextView) && childAt.getTag() instanceof ItemInfo) {
+                ItemInfo itemInfo = (ItemInfo) childAt.getTag();
+                if (packageUserKey.updateFromItemInfo(itemInfo) && set.contains(packageUserKey)) {
+                    ((BubbleTextView) childAt).applyBadgeState(itemInfo, true);
+                }
+            }
+        }
     }
 }

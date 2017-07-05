@@ -33,7 +33,7 @@ import java.util.ArrayList;
 /**
  * Represents an app in AllAppsView.
  */
-public class AppInfo extends ItemInfo {
+public class AppInfo extends ItemInfoWithIcon {
 
     /**
      * The intent used to start the application.

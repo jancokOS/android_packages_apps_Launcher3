@@ -137,6 +137,7 @@ public abstract class BaseRecyclerView extends RecyclerView
         return mScrollbar.isDraggingThumb();
     }
 
+	@Override
     public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
         // DO NOT REMOVE, NEEDED IMPLEMENTATION FOR M BUILDS
     }

@@ -48,6 +48,16 @@
         <item name="android:colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="BubbleText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:textColor">?android:textColorSecondary</item>
+    </style>
+
     <!-- Different icons -->
     <style name="Icon">
         <item name="android:layout_width">match_parent</item>
@@ -137,9 +147,28 @@
         <item name="android:colorPrimaryDark">@color/primaryColorDark</item>
         <item name="android:colorAccent">@color/colorAccent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-	</style>
-	
+    </style>
+
     <style name="ChooseIconTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:colorBackground">@color/icon_settings_background</item>
+    </style>
+
+    <style name="AllAppsNavBarProtection">
+        <item name="android:background">@color/default_shadow_color_no_alpha</item>
+        <item name="android:alpha">?android:spotShadowAlpha</item>
+    </style>
+
+    <style name="FastScrollerPopup">
+        <item name="android:textSize">@dimen/container_fastscroll_popup_text_size</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/container_fastscroll_popup_bg</item>
+        <item name="android:saveEnabled">false</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/container_fastscroll_popup_size</item>
+        <item name="android:minWidth">@dimen/container_fastscroll_popup_size</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:alpha">0.0</item>
+        <item name="android:elevation">3.0dip</item>
     </style>
 </resources>

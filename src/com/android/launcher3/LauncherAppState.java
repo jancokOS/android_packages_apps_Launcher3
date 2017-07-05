@@ -54,6 +54,7 @@ public class LauncherAppState {
     private static LauncherAppState INSTANCE;
 
     private InvariantDeviceProfile mInvariantDeviceProfile;
+    private Launcher mLauncher;
 
     public static LauncherAppState getInstance() {
         if (INSTANCE == null) {
@@ -98,10 +99,10 @@ public class LauncherAppState {
         mInvariantDeviceProfile = new InvariantDeviceProfile(sContext);
         mIconCache = new IconCache(sContext, mInvariantDeviceProfile);
         mWidgetCache = new WidgetPreviewLoader(sContext, mIconCache);
-        mDeepShortcutManager = new DeepShortcutManager(sContext, new ShortcutCache());
+        mDeepShortcutManager = new DeepShortcutManager(sContext);
 
         mAppFilter = AppFilter.loadByName(sContext.getString(R.string.app_filter_class));
-        mModel = new LauncherModel(this, mIconCache, mAppFilter, mDeepShortcutManager);
+        mModel = new LauncherModel(this, mIconCache, mAppFilter, DeepShortcutManager.getInstance(getContext()));
 
         LauncherAppsCompat.getInstance(sContext).addOnAppsChangedCallback(mModel);
 
@@ -161,6 +162,14 @@ public class LauncherAppState {
         mModel.startLoaderFromBackground();
     }
 
+    public void reloadLuna(boolean showWorkspace) {
+        mModel.resetLoadedState(true, true);
+        mModel.startLoaderFromBackground();
+        if (showWorkspace) {
+            mLauncher.showWorkspace(true);
+        }
+    }
+
     LauncherModel setLauncher(Launcher launcher) {
         sLauncherProvider.get().setLauncherProviderChangeListener(launcher);
         mModel.initialize(launcher);
@@ -191,5 +200,9 @@ public class LauncherAppState {
 
     public InvariantDeviceProfile getInvariantDeviceProfile() {
         return mInvariantDeviceProfile;
+    }
+
+    public Launcher getLauncher() {
+        return mLauncher;
     }
 }

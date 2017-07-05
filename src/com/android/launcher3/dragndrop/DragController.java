@@ -132,6 +132,7 @@ public class DragController implements DragDriver.EventListener, TouchController
     private VelocityTracker mVelocityTracker;
 
     private boolean mIsDragDeferred;
+    private boolean mIsDragDeferred2;
 
     /**
      * Interface to receive notifications when a drag starts or stops
@@ -231,6 +232,7 @@ public class DragController implements DragDriver.EventListener, TouchController
         mDragObject = new DropTarget.DragObject();
 
         mIsDragDeferred = !mOptions.deferDragCondition.shouldStartDeferredDrag(0);
+        mIsDragDeferred2 = !mOptions.deferDragCondition2.shouldStartDeferredDrag(0);
 
         final Resources res = mLauncher.getResources();
         final float scaleDps = FeatureFlags.LAUNCHER3_LEGACY_WORKSPACE_DND
@@ -271,10 +273,15 @@ public class DragController implements DragDriver.EventListener, TouchController
         dragView.show(mMotionDownX, mMotionDownY);
         mDistanceSinceScroll = 0;
 
-        if (!mIsDragDeferred) {
+        if (!mIsDragDeferred && !mIsDragDeferred2) {
             startDeferredDrag();
         } else {
-            mOptions.deferDragCondition.onDeferredDragStart();
+            if (mIsDragDeferred) {
+                mOptions.deferDragCondition.onDeferredDragStart();
+            }
+            if (!mIsDragDeferred && mIsDragDeferred2) {
+                mOptions.deferDragCondition2.onDeferredDragStart();
+            }
         }
 
         mLastTouch[0] = mMotionDownX;
@@ -285,7 +292,7 @@ public class DragController implements DragDriver.EventListener, TouchController
     }
 
     public boolean isDeferringDrag() {
-        return mIsDragDeferred;
+        return mIsDragDeferred || mIsDragDeferred2;
     }
 
     public void startDeferredDrag() {
@@ -294,6 +301,7 @@ public class DragController implements DragDriver.EventListener, TouchController
         }
         mOptions.deferDragCondition.onDragStart();
         mIsDragDeferred = false;
+        mIsDragDeferred2 = false;
     }
 
     /**
@@ -358,6 +366,7 @@ public class DragController implements DragDriver.EventListener, TouchController
                 if (!isDeferred) {
                     mDragObject.dragView.remove();
                 }
+                mDragObject.dragView.setVisibility(View.VISIBLE);
                 mDragObject.dragView = null;
             }
 
@@ -387,7 +396,7 @@ public class DragController implements DragDriver.EventListener, TouchController
     }
 
     public void onDeferredEndFling(DropTarget.DragObject d) {
-        d.dragSource.onFlingToDeleteCompleted();
+        //d.dragSource.onFlingToDeleteCompleted();
     }
 
     /**
@@ -456,6 +465,7 @@ public class DragController implements DragDriver.EventListener, TouchController
     /**
      * Call this from a drag source view.
      */
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (mOptions != null && mOptions.isAccessibleDrag) {
             return false;
@@ -536,8 +546,9 @@ public class DragController implements DragDriver.EventListener, TouchController
         mLastTouch[1] = y;
         checkScrollState(x, y);
 
-        if (mIsDragDeferred && mOptions.deferDragCondition.shouldStartDeferredDrag(
-                Math.hypot(x - mMotionDownX, y - mMotionDownY))) {
+        double hypot = Math.hypot(x - mMotionDownX, y - mMotionDownY);
+        if ((mIsDragDeferred && mOptions.deferDragCondition.shouldStartDeferredDrag(hypot)) 
+                 || (mIsDragDeferred2 && mOptions.deferDragCondition2.shouldStartDeferredDrag(hypot))) {
             startDeferredDrag();
         }
     }
@@ -604,6 +615,7 @@ public class DragController implements DragDriver.EventListener, TouchController
     /**
      * Call this from a drag source view.
      */
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (mDragDriver == null || mOptions == null || mOptions.isAccessibleDrag) {
             return false;
@@ -674,7 +686,7 @@ public class DragController implements DragDriver.EventListener, TouchController
      */
     private PointF isFlingingToDelete(DragSource source) {
         if (mFlingToDeleteDropTarget == null) return null;
-        if (!source.supportsFlingToDelete()) return null;
+        /*if (!source.supportsFlingToDelete()) return null;
 
         ViewConfiguration config = ViewConfiguration.get(mLauncher);
         mVelocityTracker.computeCurrentVelocity(1000, config.getScaledMaximumFlingVelocity());
@@ -692,7 +704,7 @@ public class DragController implements DragDriver.EventListener, TouchController
         }
         if (theta <= Math.toRadians(MAX_FLING_DEGREES)) {
             return vel;
-        }
+        }*/
         return null;
     }
 
@@ -739,6 +751,9 @@ public class DragController implements DragDriver.EventListener, TouchController
         mLauncher.getUserEventDispatcher().logDragNDrop(mDragObject, dropTargetAsView);
         if (mIsDragDeferred) {
             mOptions.deferDragCondition.onDropBeforeDeferredDrag();
+        }
+        if (mIsDragDeferred2) {
+            mOptions.deferDragCondition2.onDropBeforeDeferredDrag();
         }
     }
 
@@ -838,6 +853,7 @@ public class DragController implements DragDriver.EventListener, TouchController
         ScrollRunnable() {
         }
 
+        @Override
         public void run() {
             if (mDragScroller != null) {
                 if (mDirection == SCROLL_LEFT) {

@@ -57,6 +57,7 @@ import com.android.launcher3.config.ProviderConfig;
 import com.android.launcher3.dynamicui.ExtractionUtils;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
+import com.android.launcher3.graphics.LauncherIcons;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.GridSizeMigrationTask;
 import com.android.launcher3.model.WidgetsModel;
@@ -73,6 +74,8 @@ import com.android.launcher3.util.LongArrayMap;
 import com.android.launcher3.util.ManagedProfileHeuristic;
 import com.android.launcher3.util.MultiHashMap;
 import com.android.launcher3.util.PackageManagerHelper;
+import com.android.launcher3.util.PackageUserKey;
+import com.android.launcher3.util.Provider;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.StringFilter;
 import com.android.launcher3.util.Thunk;
@@ -204,6 +207,7 @@ public class LauncherModel extends BroadcastReceiver
 
     private final LauncherAppsCompat mLauncherApps;
     private final UserManagerCompat mUserManager;
+    private boolean mModelLoaded;
 
     public interface Callbacks {
         public boolean setLoadOnResume();
@@ -217,6 +221,7 @@ public class LauncherModel extends BroadcastReceiver
         public void finishBindingItems();
         public void bindAppWidget(LauncherAppWidgetInfo info);
         public void bindAllApplications(ArrayList<AppInfo> apps);
+        public void bindAllWidgets(MultiHashMap multiHashMap);
         public void bindAppsAdded(ArrayList<Long> newScreens,
                                   ArrayList<ItemInfo> addNotAnimated,
                                   ArrayList<ItemInfo> addAnimated,
@@ -335,7 +340,7 @@ public class LauncherModel extends BroadcastReceiver
         Context context = app.getContext();
         mApp = app;
         mBgAllAppsList = new AllAppsList(iconCache, appFilter);
-        mBgWidgetsModel = new WidgetsModel(context, iconCache, appFilter);
+        mBgWidgetsModel = new WidgetsModel(iconCache, appFilter);
         mIconCache = iconCache;
         mDeepShortcutManager = deepShortcutManager;
 
@@ -1123,7 +1128,7 @@ public class LauncherModel extends BroadcastReceiver
         synchronized (sBgLock) {
             MutableInt count = sBgPinnedShortcutCounts.get(pinnedShortcut);
             if (count == null || --count.value == 0) {
-                LauncherAppState.getInstance().getShortcutManager().unpinShortcut(pinnedShortcut);
+                DeepShortcutManager.getInstance(LauncherAppState.getInstance().getContext()).unpinShortcut(pinnedShortcut);
             }
         }
     }
@@ -1144,7 +1149,7 @@ public class LauncherModel extends BroadcastReceiver
                 count.value++;
             }
             if (shouldPin && count.value == 1) {
-                LauncherAppState.getInstance().getShortcutManager().pinShortcut(pinnedShortcut);
+                DeepShortcutManager.getInstance(LauncherAppState.getInstance().getContext()).pinShortcut(pinnedShortcut);
             }
         }
     }
@@ -1236,6 +1241,52 @@ public class LauncherModel extends BroadcastReceiver
             mHandler.cancelAll();
             mCallbacks = new WeakReference<>(callbacks);
         }
+    }
+
+    public abstract class BaseModelUpdateTask implements Runnable {
+        private LauncherModel mModel;
+
+        public abstract void execute(LauncherAppState launcherAppState, AllAppsList allAppsList);
+
+        void init(LauncherModel launcherModel) {
+            this.mModel = launcherModel;
+        }
+
+        @Override
+        public void run() {
+            if (this.mModel.mHasLoaderCompletedOnce) {
+                execute(this.mModel.mApp, this.mModel.mBgAllAppsList);
+            }
+        }
+    }
+
+    public interface CallbackTask {
+        void execute(Callbacks callbacks);
+    }
+
+    void enqueueModelUpdateTask(BaseModelUpdateTask baseModelUpdateTask) {
+        if (this.mModelLoaded || this.mLoaderTask != null) {
+            baseModelUpdateTask.init(this);
+            runOnWorkerThread(baseModelUpdateTask);
+        }
+    }
+
+    public void updateAndBindShortcutInfo(final ShortcutInfo shortcutInfo, final ShortcutInfoCompat shortcutInfoCompat) {
+        updateAndBindShortcutInfo(new Provider() {
+            @Override
+            public ShortcutInfo get() {
+                shortcutInfo.updateFromDeepShortcutInfo(shortcutInfoCompat, LauncherModel.this.mApp.getContext());
+                shortcutInfo.iconBitmap = LauncherIcons.createShortcutIcon(shortcutInfoCompat, LauncherModel.this.mApp.getContext());
+                return shortcutInfo;
+            }
+        });
+    }
+
+    public void updateAndBindShortcutInfo(final Provider provider) {
+        ShortcutInfo shortcutInfo = (ShortcutInfo) provider.get();
+        ArrayList<ShortcutInfo> arrayList = new ArrayList<>();
+        arrayList.add(shortcutInfo);
+        bindUpdatedShortcuts(arrayList, shortcutInfo.user);
     }
 
     @Override
@@ -3625,31 +3676,30 @@ public class LauncherModel extends BroadcastReceiver
         }
     }
 
-    private void bindWidgetsModel(final Callbacks callbacks, final WidgetsModel model) {
-        mHandler.post(new Runnable() {
+    private void bindWidgetsModel(final Callbacks callbacks) {
+        final MultiHashMap<com.android.launcher3.model.PackageItemInfo, com.android.launcher3.model.WidgetItem> clone = this.mBgWidgetsModel.getWidgetsMap().clone();
+        this.mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Callbacks cb = getCallback();
-                if (callbacks == cb && cb != null) {
-                    callbacks.bindWidgetsModel(model);
+                Callbacks callback = LauncherModel.this.getCallback();
+                if (callbacks == callback && callback != null) {
+                    callbacks.bindAllWidgets(clone);
                 }
             }
         });
     }
 
-    public void refreshAndBindWidgetsAndShortcuts(
-            final Callbacks callbacks, final boolean bindFirst) {
+    public void refreshAndBindWidgetsAndShortcuts(final Callbacks callbacks, 
+        final boolean state, final PackageUserKey packageUserKey) {
         runOnWorkerThread(new Runnable() {
             @Override
             public void run() {
-                if (bindFirst && !mBgWidgetsModel.isEmpty()) {
-                    bindWidgetsModel(callbacks, mBgWidgetsModel.clone());
+                if (state && (!LauncherModel.this.mBgWidgetsModel.isEmpty())) {
+                    LauncherModel.this.bindWidgetsModel(callbacks);
                 }
-                final WidgetsModel model = mBgWidgetsModel.updateAndClone(mApp.getContext());
-                bindWidgetsModel(callbacks, model);
-                // update the Widget entries inside DB on the worker thread.
-                LauncherAppState.getInstance().getWidgetCache().removeObsoletePreviews(
-                        model.getRawList());
+                ArrayList<com.android.launcher3.model.WidgetItem> update = LauncherModel.this.mBgWidgetsModel.update(LauncherModel.this.mApp.getContext(), packageUserKey);
+                LauncherModel.this.bindWidgetsModel(callbacks);
+                LauncherModel.this.mApp.getWidgetCache().removeObsoletePreviews(update);
             }
         });
     }

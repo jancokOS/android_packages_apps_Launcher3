@@ -31,12 +31,13 @@ import com.android.launcher3.compat.LauncherActivityInfoCompat;
 import android.os.UserHandle;
 import com.android.launcher3.compat.UserManagerCompat;
 import com.android.launcher3.folder.FolderIcon;
+import com.android.launcher3.shortcuts.DeepShortcutManager;
 import com.android.launcher3.shortcuts.ShortcutInfoCompat;
 
 /**
  * Represents a launchable icon on the workspaces and in folders.
  */
-public class ShortcutInfo extends ItemInfo {
+public class ShortcutInfo extends ItemInfoWithIcon {
 
     public static final int DEFAULT = 0;
 
@@ -270,6 +271,7 @@ public class ShortcutInfo extends ItemInfo {
         }
     }
 
+    @Override
     public ComponentName getTargetComponent() {
         return promisedIntent != null ? promisedIntent.getComponent() : intent.getComponent();
     }
@@ -316,7 +318,7 @@ public class ShortcutInfo extends ItemInfo {
 
         // TODO: Use cache for this
         LauncherAppState launcherAppState = LauncherAppState.getInstance();
-        Drawable unbadgedDrawable = launcherAppState.getShortcutManager()
+        Drawable unbadgedDrawable = DeepShortcutManager.getInstance(context)
                 .getShortcutIconDrawable(shortcutInfo,
                         launcherAppState.getInvariantDeviceProfile().fillResIconDpi);
 

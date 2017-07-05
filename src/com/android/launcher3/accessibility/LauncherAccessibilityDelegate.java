@@ -40,7 +40,6 @@ import com.android.launcher3.UninstallDropTarget;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.dragndrop.DragController.DragListener;
 import com.android.launcher3.shortcuts.DeepShortcutTextView;
-import com.android.launcher3.shortcuts.DeepShortcutsContainer;
 import com.android.launcher3.util.Thunk;
 
 import java.util.ArrayList;
@@ -107,7 +106,7 @@ public class LauncherAccessibilityDelegate extends AccessibilityDelegate impleme
         if (!(host.getTag() instanceof ItemInfo)) return;
         ItemInfo item = (ItemInfo) host.getTag();
 
-        if (host instanceof BubbleTextView && ((BubbleTextView) host).hasDeepShortcuts()) {
+        if (host instanceof BubbleTextView) {
             info.addAction(mActions.get(DEEP_SHORTCUTS));
         }
 
@@ -232,7 +231,7 @@ public class LauncherAccessibilityDelegate extends AccessibilityDelegate impleme
                 .show();
             return true;
         } else if (action == DEEP_SHORTCUTS) {
-            return DeepShortcutsContainer.showForIcon((BubbleTextView) host) != null;
+            return false;
         }
         return false;
     }
