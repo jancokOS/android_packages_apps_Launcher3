@@ -49,10 +49,14 @@ public class EditDropTarget extends ButtonDropTarget {
     }
 
     @Override
-    public void completeDrop(DragObject d) {
+    void completeDrop(DragObject d) {
+        startEditApplicationDialog(d.dragInfo, mLauncher);
+        
+    }
+	
+	public static boolean startEditApplicationDialog(ItemInfo info, Launcher launcher) {
         Bitmap bitmap = null;
         ComponentName componentName = null;
-        ItemInfo info = d.dragInfo;
         if (info instanceof AppInfo) {
             componentName = ((AppInfo) info).componentName;
             bitmap = ((AppInfo) info).iconBitmap;
@@ -62,7 +66,8 @@ public class EditDropTarget extends ButtonDropTarget {
         }
 
         if (bitmap != null && componentName != null) {
-            mLauncher.startEdit(bitmap, info, componentName);
+            launcher.startEdit(bitmap, info, componentName);
         }
+		return true;
     }
 }

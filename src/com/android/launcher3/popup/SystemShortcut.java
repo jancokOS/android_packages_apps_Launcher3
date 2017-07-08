@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 import com.android.launcher3.AbstractFloatingView;
+import com.android.launcher3.EditDropTarget;
 import com.android.launcher3.InfoDropTarget;
 import com.android.launcher3.ItemInfo;
 import com.android.launcher3.Launcher;
@@ -51,6 +52,22 @@ public abstract class SystemShortcut {
                 public void onClick(View view) {
                     AbstractFloatingView.closeAllOpenViews(launcher);
                     ((WidgetsBottomSheet) launcher.getLayoutInflater().inflate(R.layout.widgets_bottom_sheet, launcher.getDragLayer(), false)).populateAndShow(itemInfo);
+                }
+            };
+        }
+    }
+	
+	public static class Edit extends SystemShortcut {
+        public Edit() {
+            super(R.drawable.ic_edit_no_shadow, R.string.edit_drop_target_label);
+        }
+
+        @Override
+        public OnClickListener getOnClickListener(final Launcher launcher, final ItemInfo itemInfo) {
+            return new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    EditDropTarget.startEditApplicationDialog(itemInfo, launcher);
                 }
             };
         }

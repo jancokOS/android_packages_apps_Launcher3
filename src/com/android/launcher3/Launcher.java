@@ -4540,7 +4540,7 @@ public class Launcher extends Activity
         return createAppDragInfo(appLaunchIntent, user);
     }
 
-    protected void startEdit(final Bitmap bm, final ItemInfo info, final ComponentName component) {
+    public void startEdit(final Bitmap bm, final ItemInfo info, final ComponentName component) {
         LauncherActivityInfoCompat app = LauncherAppsCompat.getInstance(this)
                 .resolveActivity(info.getIntent(), info.user);
         mIconPackView = getLayoutInflater().inflate(R.layout.edit_dialog, null);
