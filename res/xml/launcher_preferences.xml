@@ -23,11 +23,15 @@
             android:icon="@drawable/icon_pack" />
 
     <SwitchPreference
+            android:key="pref_showGoogleApp"
+            android:title="@string/show_google_app_title"
+            android:summary="@string/show_google_app_summary" />
+
+    <SwitchPreference
             android:key="pref_allowRotation"
             android:title="@string/allow_rotation_title"
             android:defaultValue="@bool/allow_rotation"
-            android:persistent="true"
-    />
+            android:persistent="true" />
 
     <Preference
             android:key="pref_enableNotificationBadges"

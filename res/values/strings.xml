@@ -286,4 +286,8 @@
     <!-- Notification Badges -->
     <string name="notification_badges_title">Notification badges</string>
     <string name="notification_badges_title_summary">Enable notification access to obtain notification badges</string>
+
+	<!-- Show Google App -->
+	<string name="show_google_app_title">Show Google app</string>
+	<string name="show_google_app_summary">When swiping left from the homescreen</string>
 </resources>
