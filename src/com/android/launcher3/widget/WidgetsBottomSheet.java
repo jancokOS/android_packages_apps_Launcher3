@@ -197,12 +197,7 @@ public class WidgetsBottomSheet extends AbstractFloatingView implements Insettab
     protected boolean isOfType(int i) {
         return (i & 4) != 0;
     }
-
-    @Override
-    public int getLogContainerType() {
-        return 5;
-    }
-
+	
     public static WidgetsBottomSheet getOpen(Launcher launcher) {
         return (WidgetsBottomSheet) AbstractFloatingView.getOpenView(launcher, 4);
     }

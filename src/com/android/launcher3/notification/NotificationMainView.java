@@ -63,7 +63,7 @@ public class NotificationMainView extends FrameLayout implements SwipeHelper.Cal
                 charSequence2 = charSequence;
             }
             textView.setText(charSequence2);
-            mTextView.setVisibility(8);
+            mTextView.setVisibility(GONE);
         } else {
             mTitleView.setText(charSequence);
             mTextView.setText(charSequence2);

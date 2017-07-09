@@ -82,7 +82,7 @@ import java.util.ArrayList;
  * An icon that can appear on in the workspace representing an {@link Folder}.
  */
 public class FolderIcon extends FrameLayout implements FolderListener {
-    private static final Property BADGE_SCALE_PROPERTY = new C04281(Float.TYPE, "badgeScale");
+    private static final Property BADGE_SCALE_PROPERTY = new BadgeScale(Float.TYPE, "badgeScale");
     private FolderBadgeInfo mBadgeInfo = new FolderBadgeInfo();
     private BadgeRenderer mBadgeRenderer;
     private float mBadgeScale;
@@ -1048,19 +1048,19 @@ public class FolderIcon extends FrameLayout implements FolderListener {
         public boolean clipToBackground();
     }
 
-    static final class C04281 extends Property<FolderIcon, Float> {
-        C04281(Class cls, String str) {
+    static final class BadgeScale extends Property<FolderIcon, Float> {
+        BadgeScale(Class cls, String str) {
             super(cls, str);
         }
 
         @Override
         public Float get(FolderIcon folderIcon) {
-            return Float.valueOf(folderIcon.mBadgeScale);
+            return folderIcon.mBadgeScale;
         }
 
         @Override
         public void set(FolderIcon folderIcon, Float f) {
-            folderIcon.mBadgeScale = f.floatValue();
+            folderIcon.mBadgeScale = f;
             folderIcon.invalidate();
         }
     }

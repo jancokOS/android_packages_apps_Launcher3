@@ -681,11 +681,6 @@ public class PopupContainerWithArrow extends AbstractFloatingView implements Dra
     }
 
     @Override
-    public int getLogContainerType() {
-        return 9;
-    }
-	
-	@Override
     public void fillInLaunchSourceData(View v, ItemInfo info, Target target, Target targetParent) {
         //TODO: Add some logging
     }

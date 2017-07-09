@@ -4171,7 +4171,7 @@ public class Workspace extends PagedView
             public boolean evaluate(ItemInfo itemInfo, View view) {
                 if ((itemInfo instanceof ShortcutInfo) && (view instanceof BubbleTextView) && packageUserKey.updateFromItemInfo(itemInfo) && set.contains(packageUserKey)) {
                     ((BubbleTextView) view).applyBadgeState(itemInfo, true);
-                    hashSet.add(Long.valueOf(itemInfo.container));
+                    hashSet.add(itemInfo.container);
                 }
                 return false;
             }
@@ -4179,7 +4179,7 @@ public class Workspace extends PagedView
         mapOverItems(false, new ItemOperator() {
             @Override
             public boolean evaluate(ItemInfo itemInfo, View view) {
-                if ((itemInfo instanceof FolderInfo) && hashSet.contains(Long.valueOf(itemInfo.id)) && (view instanceof FolderIcon)) {
+                if ((itemInfo instanceof FolderInfo) && hashSet.contains(itemInfo.id) && (view instanceof FolderIcon)) {
                     FolderBadgeInfo folderBadgeInfo = new FolderBadgeInfo();
                     for (ShortcutInfo badgeInfoForItem : ((FolderInfo) itemInfo).contents) {
                         folderBadgeInfo.addBadgeInfo(Workspace.this.mLauncher.getPopupDataProvider().getBadgeInfoForItem(badgeInfoForItem));

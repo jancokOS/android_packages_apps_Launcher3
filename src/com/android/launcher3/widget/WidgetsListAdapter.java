@@ -54,42 +54,42 @@ public class WidgetsListAdapter extends RecyclerView.Adapter<WidgetsRowViewHolde
 
         @Override
         public int compare(WidgetListRowEntry widgetListRowEntry, WidgetListRowEntry widgetListRowEntry2) {
-            return this.mComparator.compare(widgetListRowEntry.pkgItem.title.toString(), widgetListRowEntry2.pkgItem.title.toString());
+            return mComparator.compare(widgetListRowEntry.pkgItem.title.toString(), widgetListRowEntry2.pkgItem.title.toString());
         }
     }
 
     public WidgetsListAdapter(OnClickListener onClickListener, OnLongClickListener onLongClickListener, Context context) {
-        this.mLayoutInflater = LayoutInflater.from(context);
-        this.mWidgetPreviewLoader = LauncherAppState.getInstance().getWidgetCache();
-        this.mIndexer = new AlphabeticIndexCompat(context);
-        this.mIconClickListener = onClickListener;
-        this.mIconLongClickListener = onLongClickListener;
-        this.mIndent = context.getResources().getDimensionPixelSize(R.dimen.widget_section_indent);
+        mLayoutInflater = LayoutInflater.from(context);
+        mWidgetPreviewLoader = LauncherAppState.getInstance().getWidgetCache();
+        mIndexer = new AlphabeticIndexCompat(context);
+        mIconClickListener = onClickListener;
+        mIconLongClickListener = onLongClickListener;
+        mIndent = context.getResources().getDimensionPixelSize(R.dimen.widget_section_indent);
     }
 
     public void setWidgets(MultiHashMap<PackageItemInfo, ArrayList<WidgetListRowEntry>> multiHashMap) {
-        this.mEntries.clear();
+        mEntries.clear();
         Comparator<WidgetItem> widgetItemComparator = new WidgetItemComparator();
         for (Entry<PackageItemInfo, ArrayList<ArrayList<WidgetListRowEntry>>> entry : multiHashMap.entrySet()) {
             WidgetListRowEntry widgetListRowEntry = new WidgetListRowEntry(entry.getKey(), entry.getValue());
-            widgetListRowEntry.titleSectionName = this.mIndexer.computeSectionName(widgetListRowEntry.pkgItem.title);
+            widgetListRowEntry.titleSectionName = mIndexer.computeSectionName(widgetListRowEntry.pkgItem.title);
             Collections.sort(widgetListRowEntry.widgets, widgetItemComparator);
             this.mEntries.add(widgetListRowEntry);
         }
-        Collections.sort(this.mEntries, new WidgetListRowEntryComparator());
+        Collections.sort(mEntries, new WidgetListRowEntryComparator());
     }
 
     @Override
     public int getItemCount() {
-        return this.mEntries.size();
+        return mEntries.size();
     }
 
     public String getSectionName(int i) {
-        return ((WidgetListRowEntry) this.mEntries.get(i)).titleSectionName;
+        return mEntries.get(i).titleSectionName;
     }
 
     public List copyWidgetsForPackageUser(PackageUserKey packageUserKey) {
-        for (WidgetListRowEntry widgetListRowEntry : this.mEntries) {
+        for (WidgetListRowEntry widgetListRowEntry : mEntries) {
             if (widgetListRowEntry.pkgItem.packageName.equals(packageUserKey.mPackageName)) {
                 ArrayList arrayList = new ArrayList(widgetListRowEntry.widgets);
                 Iterator it = arrayList.iterator();
@@ -109,7 +109,7 @@ public class WidgetsListAdapter extends RecyclerView.Adapter<WidgetsRowViewHolde
 
     @Override
     public void onBindViewHolder(WidgetsRowViewHolder widgetsRowViewHolder, int i) {
-        WidgetListRowEntry widgetListRowEntry = (WidgetListRowEntry) this.mEntries.get(i);
+        WidgetListRowEntry widgetListRowEntry = mEntries.get(i);
         List list = widgetListRowEntry.widgets;
         ViewGroup viewGroup = widgetsRowViewHolder.cellContainer;
         int max = Math.max(0, list.size() - 1) + list.size();
@@ -119,9 +119,9 @@ public class WidgetsListAdapter extends RecyclerView.Adapter<WidgetsRowViewHolde
                 if ((childCount & 1) == 1) {
                     this.mLayoutInflater.inflate(R.layout.widget_list_divider, viewGroup);
                 } else {
-                    WidgetCell widgetCell = (WidgetCell) this.mLayoutInflater.inflate(R.layout.widget_cell, viewGroup, false);
-                    widgetCell.setOnClickListener(this.mIconClickListener);
-                    widgetCell.setOnLongClickListener(this.mIconLongClickListener);
+                    WidgetCell widgetCell = (WidgetCell) mLayoutInflater.inflate(R.layout.widget_cell, viewGroup, false);
+                    widgetCell.setOnClickListener(mIconClickListener);
+                    widgetCell.setOnLongClickListener(mIconLongClickListener);
                     viewGroup.addView(widgetCell);
                 }
                 childCount++;
@@ -134,7 +134,7 @@ public class WidgetsListAdapter extends RecyclerView.Adapter<WidgetsRowViewHolde
         widgetsRowViewHolder.title.applyFromPackageItemInfo(widgetListRowEntry.pkgItem);
         for (max = 0; max < list.size(); max++) {
             WidgetCell widgetCell2 = (WidgetCell) viewGroup.getChildAt(max * 2);
-            widgetCell2.applyFromCellItem((WidgetItem) list.get(max), this.mWidgetPreviewLoader);
+            widgetCell2.applyFromCellItem((WidgetItem) list.get(max), mWidgetPreviewLoader);
             widgetCell2.ensurePreview();
             widgetCell2.setVisibility(View.VISIBLE);
             if (max > 0) {
@@ -145,8 +145,8 @@ public class WidgetsListAdapter extends RecyclerView.Adapter<WidgetsRowViewHolde
 
     @Override
     public WidgetsRowViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        ViewGroup viewGroup2 = (ViewGroup) this.mLayoutInflater.inflate(R.layout.widgets_list_row_view, viewGroup, false);
-        viewGroup2.findViewById(R.id.widgets_cell_list).setPaddingRelative(this.mIndent, 0, 1, 0);
+        ViewGroup viewGroup2 = (ViewGroup) mLayoutInflater.inflate(R.layout.widgets_list_row_view, viewGroup, false);
+        viewGroup2.findViewById(R.id.widgets_cell_list).setPaddingRelative(mIndent, 0, 1, 0);
         return new WidgetsRowViewHolder(viewGroup2);
     }
 

@@ -4246,20 +4246,7 @@ public class Launcher extends Activity
         mPopupDataProvider.setDeepShortcutMap(deepShortcutMapCopy);
         if (LOGD) Log.d(TAG, "bindDeepShortcutMap: " + mDeepShortcutMap);
     }
-
-    public List<String> getShortcutIdsForItem(ItemInfo info) {
-        if (!DeepShortcutManager.supportsShortcuts(info)) {
-            return Collections.EMPTY_LIST;
-        }
-        ComponentName component = info.getTargetComponent();
-        if (component == null) {
-            return Collections.EMPTY_LIST;
-        }
-
-        List<String> ids = mDeepShortcutMap.get(new ComponentKey(component, info.user));
-        return ids == null ? Collections.EMPTY_LIST : ids;
-    }
-
+	
     /**
      * A package was updated.
      *
