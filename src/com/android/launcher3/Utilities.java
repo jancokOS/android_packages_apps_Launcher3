@@ -153,6 +153,7 @@ public final class Utilities {
 
     public static final String ALLOW_ROTATION_PREFERENCE_KEY = "pref_allowRotation";
     public static final String KEY_ICON_PACK = "pref_iconPacks";
+    public static final String KEY_NOTIFICATION_BADGES = "pref_enableNotificationBadges";
 
     public static boolean isPropertyEnabled(String propertyName) {
         return Log.isLoggable(propertyName, Log.VERBOSE);

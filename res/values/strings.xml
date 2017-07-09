@@ -282,4 +282,8 @@
     <string name="shortcuts_menu_with_notifications_description">%1$d shortcuts and %2$d notifications for %3$s</string>
     <string name="notifications_header">Notifications</string>
     <string name="widgets_bottom_sheet_title">%1$s widgets</string>
+
+    <!-- Notification Badges -->
+    <string name="notification_badges_title">Notification badges</string>
+    <string name="notification_badges_title_summary">Enable notification access to obtain notification badges</string>
 </resources>

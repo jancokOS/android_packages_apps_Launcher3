@@ -19,7 +19,10 @@
 package com.android.launcher3;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.ApplicationInfo;
@@ -32,7 +35,9 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.provider.Settings;
+import android.provider.Settings.Secure;
 import android.provider.Settings.System;
+import android.text.TextUtils;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
@@ -55,6 +60,7 @@ public class SettingsActivity extends Activity {
 
         private String mDefaultIconPack;
         private SystemDisplayRotationLockObserver mRotationLockObserver;
+        private Preference mNotificationBadges;
 
         private IconsHandler mIconsHandler;
         private PackageManager mPackageManager;
@@ -66,6 +72,8 @@ public class SettingsActivity extends Activity {
             getPreferenceManager().setSharedPreferencesName(LauncherFiles.SHARED_PREFERENCES_KEY);
             addPreferencesFromResource(R.xml.launcher_preferences);
 
+            PreferenceScreen preference = getPreferenceScreen();
+
             PreferenceManager.getDefaultSharedPreferences(getActivity())
                     .registerOnSharedPreferenceChangeListener(this);
             mPackageManager = getActivity().getPackageManager();
@@ -73,6 +81,15 @@ public class SettingsActivity extends Activity {
             mDefaultIconPack = getString(R.string.default_iconpack_title);
             mIconsHandler = IconCache.getIconsHandler(getActivity().getApplicationContext());
             mIconPack = (Preference) findPreference(Utilities.KEY_ICON_PACK);
+
+            mNotificationBadges = (Preference) findPreference(Utilities.KEY_NOTIFICATION_BADGES);
+            // Load the switch preference if the service isn't enabled in notification access settings.
+            if (isNotificationBadgeEnabled()) {
+                if (mNotificationBadges != null) {
+                    // If the service is enabled, remove the preference.
+                    preference.removePreference(mNotificationBadges);
+                }
+            }
 
             // Setup allow rotation preference
             Preference rotationPref = findPreference(Utilities.ALLOW_ROTATION_PREFERENCE_KEY);
@@ -119,6 +136,10 @@ public class SettingsActivity extends Activity {
                 mIconsHandler.showDialog(getActivity());
                 return true;
             }
+            if (pref == mNotificationBadges) {
+                startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+                return true;
+            }
             return false;
         }
 
@@ -141,6 +162,29 @@ public class SettingsActivity extends Activity {
                 }
             }
             mIconPack.setSummary(iconPack);
+        }
+
+        /**
+         * Checks whether the notification badge service is enabled.
+         * @return True if enabled, false otherwise.
+         */
+        private boolean isNotificationBadgeEnabled(){
+            ContentResolver resolver = getActivity().getApplicationContext().getContentResolver();
+            String packageName = getActivity().getApplicationContext().getPackageName();
+            final String setting = Settings.Secure.getString(resolver,
+                    Settings.Secure.ENABLED_NOTIFICATION_LISTENERS);
+            if (!TextUtils.isEmpty(setting)) {
+                final String[] names = setting.split(":");
+                for (int i = 0; i < names.length; i++) {
+                    final ComponentName componentName = ComponentName.unflattenFromString(names[i]);
+                    if (componentName != null) {
+                        if (TextUtils.equals(packageName, componentName.getPackageName())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
     }
 

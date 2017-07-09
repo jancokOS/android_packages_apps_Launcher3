@@ -29,4 +29,9 @@
             android:persistent="true"
     />
 
+    <Preference
+            android:key="pref_enableNotificationBadges"
+            android:title="@string/notification_badges_title"
+            android:summary="@string/notification_badges_title_summary" />
+
 </PreferenceScreen>
