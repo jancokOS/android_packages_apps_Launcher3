@@ -468,6 +468,7 @@ public class BubbleTextView extends TextView
         if (getCurrentTextColor() == getResources().getColor(android.R.color.transparent)) {
             getPaint().clearShadowLayer();
             super.draw(canvas);
+			drawBadgeIfNecessary(canvas);
             return;
         }
 
@@ -572,6 +573,7 @@ public class BubbleTextView extends TextView
             super.setTextColor(mTextColor);
         } else {
             super.setTextColor(res.getColor(android.R.color.transparent));
+			getPaint().clearShadowLayer();
         }
     }
 
